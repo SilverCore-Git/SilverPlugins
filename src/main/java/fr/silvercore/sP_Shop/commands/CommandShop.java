@@ -9,36 +9,6 @@
 package fr.silvercore.sP_Shop.commands;
 
 import fr.silvercore.sP_Shop.SP_Shop;
-import org.bukkit.*;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.*;
-import org.bukkit.command.*;
-import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.ItemMeta;
-import java.util.ArrayList;
-import java.util.List;
-
-public class CommandShop implements CommandExecutor {
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if(sender instanceof Player) {
-            Player player = (Player) sender;
-
-            // Créer l'inventaire
-            Inventory inventory = Bukkit.createInventory(null, 9*6, "§2§lBoutique");
-
-            /*
-             * @author SilverCore
-             * @author SilverPlugins
-             * @author Silverdium
-             * @author Netsu_ - main
-             * @author JemY5
-             */
-
-package fr.silvercore.sP_Shop.commands;
-
-import fr.silvercore.sP_Shop.SP_Shop;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -51,20 +21,21 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 
-            public class CommandShop implements CommandExecutor {
+public class CommandShop implements CommandExecutor {
 
-                @Override
-                public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-                    if(sender instanceof Player) {
-                        Player player = (Player) sender;
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        if(sender instanceof Player) {
+            Player player = (Player) sender;
 
-                        // Créer l'inventaire
-                        Inventory inventory = Bukkit.createInventory(null, 9*6, "§2§lBoutique");
+            // Créer l'inventaire
+            Inventory inventory = Bukkit.createInventory(null, 9*6, "§2§lBoutique");
 
-                        // Ajouter des items en verre pour décoration
-                        // Utiliser LIME_STAINED_GLASS_PANE pour la version 1.13+
-                        ItemStack glass = new ItemStack(Material.LIME_STAINED_GLASS_PANE, 1);
+            // Ajouter des items en verre pour décoration
+            ItemStack glass = new ItemStack(Material.LIME_STAINED_GLASS_PANE, 1);
             ItemMeta meta = glass.getItemMeta();
             meta.setDisplayName(" ");
             glass.setItemMeta(meta);

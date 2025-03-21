@@ -2,7 +2,26 @@ name: SP_Shop
 version: '1.0-SNAPSHOT'
 main: fr.silvercore.sP_Shop.SP_Shop
 api-version: '1.18'
-prefix : SilverPlugins
+prefix: SilverPlugins
 load: STARTUP
 authors: [ Silvercore, JemY5, Silverdium ]
 website: core.silverdium.fr
+depend: [Vault]
+
+commands:
+  shop:
+    description: Ouvre la boutique du serveur
+    usage: /shop
+    permission: sp_shop.shop
+  sell:
+    description: Vend les items dans votre inventaire
+    usage: /sell
+    permission: sp_shop.sell
+
+permissions:
+  sp_shop.shop:
+    description: Permission d'utiliser la commande /shop
+    default: true
+  sp_shop.sell:
+    description: Permission d'utiliser la commande /sell
+    default: true

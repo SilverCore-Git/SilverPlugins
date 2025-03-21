@@ -7,18 +7,18 @@ version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
-    maven {
-        name = "spigotmc-repo"
-        url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
-    }
-    maven {
-        name = "sonatype"
-        url = "https://oss.sonatype.org/content/groups/public/"
-    }
+    // Pour Bukkit/Spigot
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    // Pour Vault
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT")
+    // Dépendances Bukkit/Spigot
+    compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
+
+    // Vault API
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
 }
 
 def targetJavaVersion = 17

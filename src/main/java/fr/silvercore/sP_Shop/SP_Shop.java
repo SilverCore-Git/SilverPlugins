@@ -7,7 +7,9 @@
  */
 package fr.silvercore.sP_Shop;
 
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -24,11 +26,20 @@ public class SP_Shop extends JavaPlugin {
     private File pricesFile;
     private FileConfiguration pricesConfig;
     private static SP_Shop instance;
+    private static Economy economy = null;
 
     @Override
     public void onEnable() {
         Bukkit.getLogger().log(Level.INFO, "SilverPlugins : SP_Shop a démarré avec succès (le frère de réussite).");
         instance = this;
+
+        // Initialiser Vault
+        if (!setupEconomy()) {
+            getLogger().severe("Impossible de trouver Vault! Désactivation du plugin.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         // Créer la configuration par défaut du plugin
         this.saveDefaultConfig();
         // Créer et charger la configuration des prix
@@ -50,6 +61,24 @@ public class SP_Shop extends JavaPlugin {
     //permet de return les valeurs
     public static SP_Shop getInstance() {
         return instance;
+    }
+
+    // Setup Vault Economy
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return economy != null;
+    }
+
+    // Getter pour l'économie
+    public static Economy getEconomy() {
+        return economy;
     }
 
     // Méthode pour créer ou charger le fichier de configuration des prix

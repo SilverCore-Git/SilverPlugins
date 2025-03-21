@@ -1,26 +1,20 @@
-name: SP_Shop
-version: '1.0-SNAPSHOT'
-main: fr.silvercore.sP_Shop.SP_Shop
-api-version: '1.18'
-prefix: SilverPlugins
-load: STARTUP
-authors: [ Silvercore, JemY5, Silverdium ]
-website: core.silverdium.fr
-
-commands:
-  shop:
-    description: Ouvre la boutique du serveur
-    usage: /shop
-    permission: sp_shop.shop
-  sell:
-    description: Vend les items dans votre inventaire
-    usage: /sell
-    permission: sp_shop.sell
-
-permissions:
-  sp_shop.shop:
-    description: Permission d'utiliser la commande /shop
-    default: true
-  sp_shop.sell:
-    description: Permission d'utiliser la commande /sell
-    default: true
+# Configuration des prix des items pour SP_Shop
+items:
+  DIAMOND:
+    buy: 100
+    sell: 80
+  IRON_INGOT:
+    buy: 20
+    sell: 15
+  GOLD_INGOT:
+    buy: 40
+    sell: 30
+  COAL:
+    buy: 5
+    sell: 3
+  OAK_LOG:
+    buy: 10
+    sell: 8
+  STONE:
+    buy: 2
+    sell: 1
