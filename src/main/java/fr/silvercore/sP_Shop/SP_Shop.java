@@ -15,7 +15,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import fr.silvercore.sP_Shop.commands.CommandSell;
 import fr.silvercore.sP_Shop.commands.CommandShop;
+import fr.silvercore.sP_Shop.commands.CommandShopAdmin;
 import fr.silvercore.sP_Shop.listeners.InventoryListener;
+import fr.silvercore.sP_Shop.listeners.AdminInventoryListener;
+import fr.silvercore.sP_Shop.utils.PriceManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -27,6 +30,7 @@ public class SP_Shop extends JavaPlugin {
     private FileConfiguration pricesConfig;
     private static SP_Shop instance;
     private static Economy economy = null;
+    private PriceManager priceManager;
 
     @Override
     public void onEnable() {
@@ -44,18 +48,33 @@ public class SP_Shop extends JavaPlugin {
         this.saveDefaultConfig();
         // Créer et charger la configuration des prix
         this.createPricesConfig();
+
+        // Initialiser le gestionnaire de prix (cache)
+        this.priceManager = new PriceManager(this);
+
         // Enregistrer les commandes
         getCommand("shop").setExecutor(new CommandShop());
         getCommand("sell").setExecutor(new CommandSell());
+
+        // Enregistrer la commande d'administration
+        CommandShopAdmin shopAdminCommand = new CommandShopAdmin(this);
+        getCommand("shopadmin").setExecutor(shopAdminCommand);
+        getCommand("shopadmin").setTabCompleter(shopAdminCommand);
+
         // Enregistrer les listeners
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
+        getServer().getPluginManager().registerEvents(new AdminInventoryListener(this), this);
     }
 
     @Override
     public void onDisable() {
         Bukkit.getLogger().log(Level.INFO, "SilverPlugins : SP_Shop a désactivé avec réussite (le frère de succès).");
         // Sauvegarder la configuration des prix si elle a été modifiée
-        savePricesConfig();
+        if (priceManager != null) {
+            priceManager.savePrices();
+        } else {
+            savePricesConfig();
+        }
     }
 
     //permet de return les valeurs
@@ -79,6 +98,11 @@ public class SP_Shop extends JavaPlugin {
     // Getter pour l'économie
     public static Economy getEconomy() {
         return economy;
+    }
+
+    // Getter pour le gestionnaire de prix
+    public PriceManager getPriceManager() {
+        return priceManager;
     }
 
     // Méthode pour créer ou charger le fichier de configuration des prix

@@ -1,4 +1,10 @@
-# Configuration des prix des items pour SP_Shop
+  # @author SilverCore
+  # @author SilverPlugins
+  # @author Silverdium
+  # @author JemY5
+
+  # Configuration des prix des items pour SP_Shop
+
 items:
   DIAMOND:
     buy: 100

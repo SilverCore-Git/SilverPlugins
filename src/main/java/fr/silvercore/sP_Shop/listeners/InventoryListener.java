@@ -1,3 +1,9 @@
+/*
+ * @author SilverCore
+ * @author SilverPlugins
+ * @author Silverdium
+ * @author JemY5
+ */
 package fr.silvercore.sP_Shop.listeners;
 
 import fr.silvercore.sP_Shop.SP_Shop;
