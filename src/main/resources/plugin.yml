@@ -6,7 +6,9 @@ prefix: SilverPlugins
 load: STARTUP
 authors: [ Silvercore, JemY5, Silverdium ]
 website: core.silverdium.fr
-depend: [Vault]
+depend:
+  - Vault
+  - sqlite-jdbc
 
 commands:
   shop:

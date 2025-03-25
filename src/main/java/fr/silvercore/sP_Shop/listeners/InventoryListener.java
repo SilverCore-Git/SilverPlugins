@@ -7,6 +7,7 @@
 package fr.silvercore.sP_Shop.listeners;
 
 import fr.silvercore.sP_Shop.SP_Shop;
+import fr.silvercore.sP_Shop.database.TransactionDatabaseManager;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Material;
@@ -17,6 +18,12 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class InventoryListener implements Listener {
+
+    private TransactionDatabaseManager transactionDatabase;
+
+    public InventoryListener() {
+        this.transactionDatabase = SP_Shop.getInstance().getTransactionDatabase();
+    }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
@@ -31,7 +38,6 @@ public class InventoryListener implements Listener {
             Player player = (Player) event.getWhoClicked();
             ItemStack clickedItem = event.getCurrentItem();
             Material material = clickedItem.getType();
-
             // Chercher le prix dans la configuration
             int buyPrice = SP_Shop.getInstance().getPricesConfig().getInt("items." + material.name() + ".buy", -1);
             int sellPrice = SP_Shop.getInstance().getPricesConfig().getInt("items." + material.name() + ".sell", -1);
@@ -40,14 +46,9 @@ public class InventoryListener implements Listener {
                 player.sendMessage("§cCet item n'est pas disponible à l'achat ou à la vente.");
                 return;
             }
-
-            Economy economy = SP_Shop.getEconomy();
-
             // Déterminer la quantité d'achat/vente en fonction du clic
-            int quantity = 1;
-            if (event.isShiftClick()) {
-                quantity = 64; // Achat/vente en lot avec Shift+clic
-            }
+            Economy economy = SP_Shop.getEconomy();
+            int quantity = event.isShiftClick() ? 64 : 1;
 
             if (event.isLeftClick()) {
                 // Acheter
@@ -69,6 +70,28 @@ public class InventoryListener implements Listener {
                     }
                 } else {
                     player.sendMessage("§cVous n'avez pas assez d'argent pour acheter cet item.");
+                }
+                int totalCostB = buyPrice * quantity;
+                if (economy.has(player, totalCostB)) {
+                    EconomyResponse response = economy.withdrawPlayer(player, totalCostB);
+                    if (response.transactionSuccess()) {
+                        if (hasInventorySpace(player, material, quantity)) {
+                            player.getInventory().addItem(new ItemStack(material, quantity));
+                            player.sendMessage("§aVous avez acheté §e" + quantity + "x §a" + material.name() + " pour §e" + totalCost + " §apièces.");
+
+                            // Enregistrer la transaction
+                            transactionDatabase.recordTransaction(
+                                    material,
+                                    player, // Le serveur est considéré comme le vendeur
+                                    player,
+                                    totalCost,
+                                    quantity
+                            );
+                        } else {
+                            economy.depositPlayer(player, totalCost);
+                            player.sendMessage("§cVous n'avez pas assez d'espace dans votre inventaire!");
+                        }
+                    }
                 }
             } else if (event.isRightClick()) {
                 // Vendre
@@ -97,10 +120,32 @@ public class InventoryListener implements Listener {
                 } else {
                     player.sendMessage("§cVous n'avez pas cet item dans votre inventaire.");
                 }
+                int itemCountB = countItems(player, material);
+                if (quantity > itemCountB) {
+                    quantity = itemCountB;
+                }
+
+                if (quantity > 0) {
+                    int totalProfit = sellPrice * quantity;
+                    removeItems(player, material, quantity);
+
+                    EconomyResponse response = economy.depositPlayer(player, totalProfit);
+                    if (response.transactionSuccess()) {
+                        player.sendMessage("§aVous avez vendu §e" + quantity + "x §a" + material.name() + " pour §e" + totalProfit + " §apièces.");
+
+                        // Enregistrer la transaction
+                        transactionDatabase.recordTransaction(
+                                material,
+                                player,
+                                player, // Le serveur est considéré comme l'acheteur
+                                totalProfit,
+                                quantity
+                        );
+                    }
+                }
             }
         }
     }
-
     // Méthode pour vérifier si le joueur a assez d'espace dans son inventaire
     private boolean hasInventorySpace(Player player, Material material, int amount) {
         // Calculer combien d'emplacements sont nécessaires (en fonction de la taille de stack)

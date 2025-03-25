@@ -18,6 +18,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import fr.silvercore.sP_Shop.database.TransactionDatabaseManager;
 import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +79,7 @@ public class CommandShop implements CommandExecutor {
                     } catch (IllegalArgumentException e) {
                         SP_Shop.getInstance().getLogger().warning("Matériel inconnu dans la configuration: " + materialName);
                     }
+
                 }
             }
 

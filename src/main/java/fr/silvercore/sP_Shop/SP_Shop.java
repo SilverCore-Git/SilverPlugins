@@ -19,6 +19,7 @@ import fr.silvercore.sP_Shop.commands.CommandShopAdmin;
 import fr.silvercore.sP_Shop.listeners.InventoryListener;
 import fr.silvercore.sP_Shop.listeners.AdminInventoryListener;
 import fr.silvercore.sP_Shop.utils.PriceManager;
+import fr.silvercore.sP_Shop.database.TransactionDatabaseManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -31,6 +32,7 @@ public class SP_Shop extends JavaPlugin {
     private static SP_Shop instance;
     private static Economy economy = null;
     private PriceManager priceManager;
+    private TransactionDatabaseManager transactionDatabase;
 
     @Override
     public void onEnable() {
@@ -52,6 +54,9 @@ public class SP_Shop extends JavaPlugin {
         // Initialiser le gestionnaire de prix (cache)
         this.priceManager = new PriceManager(this);
 
+        // Initialiser la base de données de transactions
+        this.transactionDatabase = new TransactionDatabaseManager(this);
+
         // Enregistrer les commandes
         getCommand("shop").setExecutor(new CommandShop());
         getCommand("sell").setExecutor(new CommandSell());
@@ -69,15 +74,21 @@ public class SP_Shop extends JavaPlugin {
     @Override
     public void onDisable() {
         Bukkit.getLogger().log(Level.INFO, "SilverPlugins : SP_Shop a désactivé avec réussite (le frère de succès).");
+
         // Sauvegarder la configuration des prix si elle a été modifiée
         if (priceManager != null) {
             priceManager.savePrices();
         } else {
             savePricesConfig();
         }
+
+        // Fermer la connexion à la base de données
+        if (transactionDatabase != null) {
+            transactionDatabase.closeConnection();
+        }
     }
 
-    //permet de return les valeurs
+    // Permet de retourner l'instance du plugin
     public static SP_Shop getInstance() {
         return instance;
     }
@@ -105,6 +116,11 @@ public class SP_Shop extends JavaPlugin {
         return priceManager;
     }
 
+    // Getter pour la base de données de transactions
+    public TransactionDatabaseManager getTransactionDatabase() {
+        return this.transactionDatabase;
+    }
+
     // Méthode pour créer ou charger le fichier de configuration des prix
     public void createPricesConfig() {
         pricesFile = new File(getDataFolder(), "prices.yml");
@@ -115,7 +131,7 @@ public class SP_Shop extends JavaPlugin {
             // Sauvegarder le fichier de configuration par défaut s'il existe dans les ressources
             saveResource("prices.yml", false);
         }
-        // Si le fichier not found dans les ressources, créer un fichier vide
+        // Si le fichier n'est pas trouvé dans les ressources, créer un fichier vide
         if (!pricesFile.exists()) {
             try {
                 pricesFile.createNewFile();
