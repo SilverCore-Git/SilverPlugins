@@ -1,0 +1,26 @@
+  # @author SilverCore
+  # @author SilverPlugins
+  # @author Silverdium
+  # @author JemY5
+
+  # Configuration des prix des items pour SP_Shop
+
+items:
+  DIAMOND:
+    buy: 100
+    sell: 80
+  IRON_INGOT:
+    buy: 20
+    sell: 15
+  GOLD_INGOT:
+    buy: 40
+    sell: 30
+  COAL:
+    buy: 5
+    sell: 3
+  OAK_LOG:
+    buy: 10
+    sell: 8
+  STONE:
+    buy: 2
+    sell: 1
