@@ -1,7 +1,0 @@
-name: sp_velocitysync
-version: '1.0-SNAPSHOT'
-main: fr.silverplugins.sp_velocitysync.Sp_velocitysync
-api-version: '1.18'
-authors: [ SilverPlugins ]
-description: a plugins for more mouvement in minecraft
-website: https://core.silverdium.fr

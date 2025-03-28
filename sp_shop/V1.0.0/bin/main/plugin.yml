@@ -1,7 +1,0 @@
-name: SP_Shop
-version: '1.0-SNAPSHOT'
-main: fr.silvercore.sP_Shop.SP_Shop
-api-version: '1.18'
-load: STARTUP
-authors: [ Silvercore ; JemY5 ]
-website: core.silverdium.fr
