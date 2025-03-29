@@ -1,7 +1,7 @@
-name: sp_velocitysync
-version: '1.0-SNAPSHOT'
+name: SP VelocitySync
+version: '1.0-ALPHA'
 main: fr.silverplugins.sp_velocitysync.Sp_velocitysync
 api-version: '1.18'
-authors: [ SilverPlugins ]
-description: a plugins for more mouvement in minecraft
+authors: [ SilverPlugins, SilverCore, MisterPapaye ]
+description: Plugin de sincronisation de data utilisateurs pour Vélocity !
 website: https://core.silverdium.fr

@@ -8,10 +8,13 @@ public final class Sp_velocitysync extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
 
+
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+
+
     }
 }
