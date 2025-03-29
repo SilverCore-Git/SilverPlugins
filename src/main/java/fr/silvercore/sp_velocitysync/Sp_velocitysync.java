@@ -4,20 +4,19 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.Player;
+import com.velocitypowered.api.event.player.PlayerJoinEvent;
+import redis.clients.jedis.Jedis;
 import org.slf4j.Logger;
 
-import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
-import com.velocitypowered.api.proxy.server.ServerInfo;
-import com.velocitypowered.api.proxy.Player;
-
-import java.util.concurrent.TimeUnit;
-import fr.silvercore.sp_velocitysync.Sync_op;
+import java.util.UUID;
 
 @Plugin(
         id = "sp_velocitysync",
         name = "sp_velocitysync",
-        version = BuildConstants.VERSION
+        version = BuildConstants.VERSION,
+        authors = {"SilverCore", "SilverPlugins", "MisterPapaye"}
 )
 public class Sp_velocitysync {
 
@@ -27,40 +26,33 @@ public class Sp_velocitysync {
     @Inject
     private ProxyServer proxy;
 
-    private final Sync_op syncOp;  // Nom de la variable syncOp en camelCase
+    private RedisService redisService;
 
     @Inject
-    public Sp_velocitysync(ProxyServer proxy, Logger logger, Sync_op syncOp) {
+    public Sp_velocitysync(ProxyServer proxy, Logger logger) {
         this.proxy = proxy;
         this.logger = logger;
-        this.syncOp = syncOp;  // Injection de Sync_op
+        this.redisService = new RedisService(logger);
     }
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        proxy.getScheduler().buildTask(this, this::logServerAndPlayerInfo)
-                .repeat(10, TimeUnit.SECONDS)
-                .schedule();
-
-        // Synchronisation des opérateurs lors de l'initialisation du proxy ( a revoir)
-        // syncOp.syncOpOnAllServers();  // Appel de la méthode syncOpOnAllServers
+        logger.info("Plugin Sp_velocitysync initialisé !");
     }
 
-    private void logServerAndPlayerInfo() {
-        logger.info("=== Serveurs enregistrés ===");
+    @Subscribe
+    public void onPlayerLogin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
 
-        for (RegisteredServer server : proxy.getAllServers()) {
-            ServerInfo info = server.getServerInfo();
-            logger.info("Nom: " + info.getName());
-            logger.info("Adresse: " + info.getAddress());
-        }
+        // Créer un objet PlayerData avec l'UUID, le nom du joueur, l'inv et l'armur
+        PlayerData playerData = new PlayerData(
+                player.getUsername(), // récupération des data user
+                player.getInventory().getContents(),
+                player.getEquipment().getHelmet()
+        );
 
-        logger.info("=== Joueurs connectés ===");
-
-        for (Player player : proxy.getAllPlayers()) {
-            logger.info("Pseudo: " + player.getUsername());
-            logger.info("UUID: " + player.getUniqueId());
-            logger.info("Serveur actuel: " + (player.getCurrentServer().isPresent() ? player.getCurrentServer().get().getServerInfo().getName() : "Aucun"));
-        }
+        // Sauvegarder ces données dans Redis
+        redisService.savePlayerData(playerUUID, playerData);
     }
 }
