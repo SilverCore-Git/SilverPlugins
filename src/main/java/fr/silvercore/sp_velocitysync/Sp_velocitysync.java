@@ -47,11 +47,10 @@ public class Sp_velocitysync {
         for (RegisteredServer server : proxy.getAllServers()) { // récupération des servers
 
             ServerInfo info = server.getServerInfo(); // récupération des info des servers
-            Optional<ServerPing> ping = server.ping().join(); // récupération du ping des servers / .join sert a attendre la fin de la req async
+
 
             logger.info("Nom: " + info.getName()); // log server info ...
             logger.info("Adresse: " + info.getAddress()); // ...
-            logger.info("Joueurs: " + (ping.isPresent() ? ping.get().getPlayers().orElse(null) : "Inconnu")); // ...
 
         }
 
