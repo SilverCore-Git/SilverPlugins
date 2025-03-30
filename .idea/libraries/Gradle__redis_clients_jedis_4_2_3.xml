@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: redis.clients:jedis:4.2.3" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="redis.clients" artifactId="jedis" version="4.2.3" baseVersion="4.2.3" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/redis.clients/jedis/4.2.3/eeaf2f9eb5e56138ab8cf936dc00f86c3a569d05/jedis-4.2.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: org.spongepowered:configurate-yaml:4.1.2" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.spongepowered" artifactId="configurate-yaml" version="4.1.2" baseVersion="4.1.2" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.spongepowered/configurate-yaml/4.1.2/f726180c21ec387be5b8a2e04d916443c4046207/configurate-yaml-4.1.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

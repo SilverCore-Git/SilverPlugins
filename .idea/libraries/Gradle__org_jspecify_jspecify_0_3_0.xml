@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: org.jspecify:jspecify:0.3.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.jspecify" artifactId="jspecify" version="0.3.0" baseVersion="0.3.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jspecify/jspecify/0.3.0/fc1a0c38a07667f2dbbece32164dac2d0056d205/jspecify-0.3.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
