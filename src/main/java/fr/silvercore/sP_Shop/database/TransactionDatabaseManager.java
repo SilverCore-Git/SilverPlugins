@@ -17,36 +17,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionDatabaseManager {
-    private Connection connection;
     private SP_Shop plugin;
+    private DatabaseManager dbManager;
 
     public TransactionDatabaseManager(SP_Shop plugin) {
         this.plugin = plugin;
-        initializeDatabase();
+        this.dbManager = new DatabaseManager(plugin);
+        this.initializeDatabase();
     }
 
     private void initializeDatabase() {
-        try {
-            // Créer le dossier du plugin s'il n'existe pas
-            if (!plugin.getDataFolder().exists()) {
-                plugin.getDataFolder().mkdir();
-            }
-
-            // Établir la connexion à la base de données SQLite
-            connection = DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + "/transactions.db");
+        try (Connection conn = dbManager.getConnection();
+             Statement stmt = conn.createStatement()) {
 
             // Créer la table des transactions si elle n'existe pas
-            try (Statement statement = connection.createStatement()) {
-                statement.execute("CREATE TABLE IF NOT EXISTS transactions (" +
-                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        "item_name TEXT NOT NULL, " +
-                        "seller_name TEXT NOT NULL, " +
-                        "buyer_name TEXT NOT NULL, " +
-                        "price REAL NOT NULL, " +
-                        "quantity INTEGER NOT NULL, " +
-                        "transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP" +
-                        ")");
-            }
+            stmt.execute("CREATE TABLE IF NOT EXISTS transactions (" +
+                    "id INTEGER PRIMARY KEY " + (dbManager.getDbType().equalsIgnoreCase("sqlite") ? "AUTOINCREMENT" : "AUTO_INCREMENT") + ", " +
+                    "item_name VARCHAR(255) NOT NULL, " +
+                    "seller_name VARCHAR(255) NOT NULL, " +
+                    "buyer_name VARCHAR(255) NOT NULL, " +
+                    "price DECIMAL(10,2) NOT NULL, " +
+                    "quantity INTEGER NOT NULL, " +
+                    "transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                    ")");
+
         } catch (SQLException e) {
             plugin.getLogger().severe("Erreur lors de l'initialisation de la base de données : " + e.getMessage());
         }
@@ -63,7 +57,9 @@ public class TransactionDatabaseManager {
     public void recordTransaction(Material item, Player seller, Player buyer, double price, int quantity) {
         String query = "INSERT INTO transactions (item_name, seller_name, buyer_name, price, quantity) VALUES (?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
             pstmt.setString(1, item.name());
             pstmt.setString(2, seller.getName());
             pstmt.setString(3, buyer.getName());
@@ -85,7 +81,8 @@ public class TransactionDatabaseManager {
         List<Transaction> transactions = new ArrayList<>();
         String query = "SELECT * FROM transactions ORDER BY transaction_date DESC LIMIT ?";
 
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
             pstmt.setInt(1, limit);
 
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -142,16 +139,8 @@ public class TransactionDatabaseManager {
         public LocalDateTime getTransactionDate() { return transactionDate; }
     }
 
-    /**
-     * Ferme la connexion à la base de données
-     */
+    // Ferme la connexion à la base de données
     public void closeConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().severe("Erreur lors de la fermeture de la connexion à la base de données : " + e.getMessage());
-        }
+        dbManager.closeConnection();
     }
 }

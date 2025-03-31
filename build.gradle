@@ -24,6 +24,9 @@ dependencies {
     // MySQL Connector
     implementation 'mysql:mysql-connector-java:8.0.33'
 
+    // Pour PostgreSQL
+    implementation 'org.postgresql:postgresql:42.6.0'
+
     //Dépendances SQLite JDBC
     implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
 }

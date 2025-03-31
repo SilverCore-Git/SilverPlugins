@@ -27,3 +27,11 @@ permissions:
   sp_shop.sell:
     description: Permission d'utiliser la commande /sell
     default: true
+
+    database:
+      type: mysql    # mysql, postgresql ou sqlite
+      host: localhost
+      port: 3306
+      name: silverplugin
+      username: silverplugin
+      password: ""

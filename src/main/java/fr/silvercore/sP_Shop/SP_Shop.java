@@ -38,6 +38,8 @@ public class SP_Shop extends JavaPlugin {
     public void onEnable() {
         Bukkit.getLogger().log(Level.INFO, "SilverPlugins : SP_Shop a démarré avec succès (le frère de réussite).");
         instance = this;
+        this.saveDefaultConfig();
+        this.saveDefaultConfig();
 
         // Initialiser Vault
         if (!setupEconomy()) {
