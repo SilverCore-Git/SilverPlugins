@@ -6,21 +6,36 @@
   # Configuration des prix des items pour SP_Shop
 
 items:
-  DIAMOND:
+  DIAMOND: #Diamond
     buy: 100
     sell: 80
-  IRON_INGOT:
+  IRON_INGOT: #Lingot de Fer
     buy: 20
     sell: 15
-  GOLD_INGOT:
+  GOLD_INGOT: #Lingot d'Or
     buy: 40
     sell: 30
-  COAL:
+  COAL: #Charbon
     buy: 5
     sell: 3
-  OAK_LOG:
+  OAK_LOG: #
     buy: 10
     sell: 8
-  STONE:
+  STONE: #Pierre
+    buy: 5
+    sell: 2
+  COBBLESTONE: #Caillou
     buy: 2
     sell: 1
+  SAND: #Sable
+    buy: 3
+    sell: 1
+  DIRT: #Terre
+    buy: 1
+    sell: 0
+  NETHERITE_INGOT: #Lingot de netherite
+    buy: 200
+    sell: 175
+  OBSIDIAN: #Obsidienne
+    buy: 150
+    sell: 115

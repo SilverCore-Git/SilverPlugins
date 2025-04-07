@@ -1,5 +1,5 @@
 name: SP_Shop
-version: '1.0-SNAPSHOT'
+version: '${version}'
 main: fr.silvercore.sP_Shop.SP_Shop
 api-version: '1.18'
 prefix: SilverPlugins
@@ -8,7 +8,6 @@ authors: [ Silvercore, JemY5, Silverdium ]
 website: core.silverdium.fr
 depend:
   - Vault
-  - sqlite-jdbc
 
 commands:
   shop:
@@ -28,7 +27,7 @@ permissions:
     description: Permission d'utiliser la commande /sell
     default: true
 
-    database:
+database:
       type: mysql    # mysql, postgresql ou sqlite
       host: localhost
       port: 3306

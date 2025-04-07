@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     // Dépendances Bukkit/Spigot
-    compileOnly 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT'  // Mise à jour vers votre version plus récente
+    compileOnly 'org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT'  // Mise à jour vers votre version plus récente
 
     // Vault API
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
