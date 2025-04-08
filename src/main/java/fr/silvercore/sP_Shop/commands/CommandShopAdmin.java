@@ -36,7 +36,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage("[shop] §cCette commande ne peut être utilisée que par un joueur.");
-            return true;
+            return;
         }
 
         Player player = (Player) sender;
@@ -44,13 +44,13 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
         // Vérifier la permission
         if (!player.hasPermission("sp_shop.admin")) {
             player.sendMessage("[shop] §cVous n'avez pas la permission d'utiliser cette commande.");
-            return true;
+            return;
         }
 
         // Commande sans arguments - ouvrir l'interface d'administration
         if (args.length == 0) {
             openAdminMenu(player);
-            return true;
+            return;
         }
 
         PriceManager priceManager = plugin.getPriceManager();
@@ -66,7 +66,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
 
                         if (buyPrice < 0 || sellPrice < 0) {
                             player.sendMessage("[shop] §cLes prix doivent être positifs.");
-                            return true;
+                            return;
                         }
 
                         priceManager.addItem(material, buyPrice, sellPrice);
@@ -110,7 +110,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
 
                         if (buyPrice < 0) {
                             player.sendMessage("[shop] §cLe prix doit être positif.");
-                            return true;
+                            return;
                         }
 
                         if (priceManager.hasItem(material)) {
@@ -137,7 +137,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
 
                         if (sellPrice < 0) {
                             player.sendMessage("[shop] §cLe prix doit être positif.");
-                            return true;
+                            return;
                         }
 
                         if (priceManager.hasItem(material)) {
@@ -174,7 +174,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                         if (page < 1) page = 1;
                     } catch (NumberFormatException e) {
                         player.sendMessage("[shop] §cNuméro de page invalide.");
-                        return true;
+                        return;
                     }
                 }
 
@@ -186,7 +186,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                 break;
         }
 
-        return true;
+        return;
     }
 
     private void openAdminMenu(Player player) {
