@@ -4,6 +4,7 @@
  * @author Silverdium
  * @author JemY5
  */
+
 package fr.silvercore.sP_Shop.utils;
 
 import fr.silvercore.sP_Shop.SP_Shop;
@@ -68,7 +69,7 @@ public class PriceManager {
 
                     priceCache.put(material, new ItemPrice(buyPrice, sellPrice));
                 } catch (IllegalArgumentException e) {
-                    plugin.getLogger().warning("Matériel inconnu dans la configuration: " + materialName);
+                    plugin.getLogger().warning("[SP_Shop] : Matériel inconnu dans la configuration: " + materialName);
                 }
             }
         }

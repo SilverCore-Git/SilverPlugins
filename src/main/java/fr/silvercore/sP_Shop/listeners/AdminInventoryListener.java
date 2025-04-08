@@ -4,6 +4,7 @@
  * @author Silverdium
  * @author JemY5
  */
+
 package fr.silvercore.sP_Shop.listeners;
 
 import fr.silvercore.sP_Shop.SP_Shop;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class AdminInventoryListener implements Listener {
 
     private SP_Shop plugin;
@@ -33,7 +35,7 @@ public class AdminInventoryListener implements Listener {
     private Map<UUID, Material> selectedMaterial = new HashMap<>();
     private Map<UUID, PriceEditType> priceEditSessions = new HashMap<>();
 
-    public enum AdminSessionType {
+    public enum AdminSessionType { // enum => object
         MAIN_MENU,
         ADD_ITEM,
         EDIT_PRICES,
@@ -121,20 +123,18 @@ public class AdminInventoryListener implements Listener {
 
         // Retour au menu principal
         if (material == Material.BARRIER) {
-            openAdminMainMenu(player);
-            return;
-        }
+            return openAdminMainMenu(player);
+        };
 
         // Ignorer les items de décoration
         if (material == Material.GRAY_STAINED_GLASS_PANE) {
-            return;
-        }
+            return true;
+        };
 
         // Si l'item est déjà dans la boutique, informer le joueur
         if (priceManager.hasItem(material)) {
-            player.sendMessage("§cCet item est déjà dans la boutique. Utilisez le menu de modification des prix.");
-            return;
-        }
+            return player.sendMessage("§cCet item est déjà dans la boutique. Utilisez le menu de modification des prix.");
+        };
 
         // Ouvrir l'interface d'édition des prix pour l'ajout
         selectedMaterial.put(player.getUniqueId(), material);
@@ -148,19 +148,17 @@ public class AdminInventoryListener implements Listener {
 
         // Retour au menu principal
         if (material == Material.BARRIER) {
-            openAdminMainMenu(player);
-            return;
+            return openAdminMainMenu(player);
         }
 
         // Ignorer les items de décoration
         if (material == Material.GRAY_STAINED_GLASS_PANE) {
-            return;
+            return true;
         }
 
         // Vérifier si l'item est dans la boutique
         if (!priceManager.hasItem(material)) {
-            player.sendMessage("§cCet item n'est pas disponible dans la boutique.");
-            return;
+            return player.sendMessage("§cCet item n'est pas disponible dans la boutique.");
         }
 
         // Ouvrir l'interface d'édition des prix
@@ -176,24 +174,22 @@ public class AdminInventoryListener implements Listener {
         // Retour au menu principal
         if (material == Material.BARRIER) {
             openAdminMainMenu(player);
-            return;
         }
 
         // Ignorer les items de décoration
         if (material == Material.GRAY_STAINED_GLASS_PANE) {
-            return;
+            return true;
         }
 
         // Vérifier si l'item est dans la boutique
         if (!priceManager.hasItem(material)) {
-            player.sendMessage("§cCet item n'est pas disponible dans la boutique.");
-            return;
+            return player.sendMessage("[shop] §cCet item n'est pas disponible dans la boutique.");
         }
 
         // Supprimer l'item
         priceManager.removeItem(material);
         priceManager.savePrices();
-        player.sendMessage("§aL'item §e" + material.name() + " §aa été supprimé de la boutique.");
+        player.sendMessage("[shop] §aL'item §e" + material.name() + " §aa été supprimé de la boutique.");
 
         // Rafraîchir le menu
         openRemoveItemMenu(player);
@@ -203,8 +199,7 @@ public class AdminInventoryListener implements Listener {
     private void handlePriceEditorClick(Player player, ItemStack clickedItem, int slot) {
         Material material = selectedMaterial.get(player.getUniqueId());
         if (material == null) {
-            openAdminMainMenu(player);
-            return;
+            return openAdminMainMenu(player);
         }
 
         PriceManager priceManager = plugin.getPriceManager();
@@ -212,8 +207,7 @@ public class AdminInventoryListener implements Listener {
 
         // Retour
         if (clickedItem.getType() == Material.BARRIER) {
-            openAdminMainMenu(player);
-            return;
+            return openAdminMainMenu(player);   
         }
 
         boolean isNewItem = !priceManager.hasItem(material);
@@ -222,13 +216,13 @@ public class AdminInventoryListener implements Listener {
         if (itemName.equals("§aModifier le prix d'achat")) {
             player.closeInventory();
             priceEditSessions.put(player.getUniqueId(), PriceEditType.BUY);
-            player.sendMessage("§aEntrez le nouveau prix d'achat pour §e" + material.name() + " §adans le chat:");
+            player.sendMessage("[shop] §aEntrez le nouveau prix d'achat pour §e" + material.name() + " §adans le chat:");
         }
         // Édition du prix de vente
         else if (itemName.equals("§cModifier le prix de vente")) {
             player.closeInventory();
             priceEditSessions.put(player.getUniqueId(), PriceEditType.SELL);
-            player.sendMessage("§aEntrez le nouveau prix de vente pour §e" + material.name() + " §adans le chat:");
+            player.sendMessage("[shop] §aEntrez le nouveau prix de vente pour §e" + material.name() + " §adans le chat:");
         }
         // Confirmer l'ajout
         else if (itemName.equals("§aConfirmer l'ajout")) {
@@ -237,19 +231,19 @@ public class AdminInventoryListener implements Listener {
 
             // Vérifier si les prix sont configurés
             if (buyPrice <= 0 || sellPrice <= 0) {
-                player.sendMessage("§cVous devez configurer les deux prix avant de confirmer.");
+                player.sendMessage("[shop] §cVous devez configurer les deux prix avant de confirmer.");
                 return;
             }
 
             priceManager.addItem(material, buyPrice, sellPrice);
             priceManager.savePrices();
-            player.sendMessage("§aL'item §e" + material.name() + " §aa été ajouté à la boutique.");
+            player.sendMessage("[shop] §aL'item §e" + material.name() + " §aa été ajouté à la boutique.");
             openAdminMainMenu(player);
         }
         // Enregistrer les modifications
         else if (itemName.equals("§aSauvegarder")) {
             priceManager.savePrices();
-            player.sendMessage("§aLes modifications ont été sauvegardées.");
+            player.sendMessage("[shop] §aLes modifications ont été sauvegardées.");
             openAdminMainMenu(player);
         }
     }
@@ -528,7 +522,7 @@ public class AdminInventoryListener implements Listener {
             int price = Integer.parseInt(message);
 
             if (price < 0) {
-                player.sendMessage("§cLe prix doit être un nombre positif.");
+                player.sendMessage("[shop] §cLe prix doit être un nombre positif.");
                 return true;
             }
 
@@ -536,10 +530,10 @@ public class AdminInventoryListener implements Listener {
 
             if (editType == PriceEditType.BUY) {
                 priceManager.setBuyPrice(material, price);
-                player.sendMessage("§aPrix d'achat de §e" + material.name() + " §afixé à §e" + price);
+                player.sendMessage("[shop] §aPrix d'achat de §e" + material.name() + " §afixé à §e" + price);
             } else {
                 priceManager.setSellPrice(material, price);
-                player.sendMessage("§aPrix de vente de §e" + material.name() + " §afixé à §e" + price);
+                player.sendMessage("[shop] §aPrix de vente de §e" + material.name() + " §afixé à §e" + price);
             }
 
             // Ouvrir à nouveau l'interface d'édition des prix
@@ -550,7 +544,7 @@ public class AdminInventoryListener implements Listener {
 
             return true;
         } catch (NumberFormatException e) {
-            player.sendMessage("§cVeuillez entrer un nombre valide.");
+            player.sendMessage("[shop] §cVeuillez entrer un nombre valide.");
             return true;
         }
     }

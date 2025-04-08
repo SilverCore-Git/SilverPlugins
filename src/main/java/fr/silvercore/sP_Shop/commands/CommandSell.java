@@ -38,7 +38,7 @@ public class CommandSell implements CommandExecutor {
             // Obtenir la section de configuration des items
             ConfigurationSection itemsSection = SP_Shop.getInstance().getPricesConfig().getConfigurationSection("items");
             if (itemsSection == null) {
-                player.sendMessage("§cAucun item n'est configuré pour la vente.");
+                player.sendMessage("[shop] §cAucun item n'est configuré pour la vente.");
                 return true;
             }
             // Calculer les ventes
@@ -86,16 +86,16 @@ public class CommandSell implements CommandExecutor {
                         );
                     }
 
-                    player.sendMessage("§aVous avez vendu :");
+                    player.sendMessage("[shop] §aVous avez vendu :");
                     for (Map.Entry<Material, Integer> entry : soldItems.entrySet()) {
-                        player.sendMessage("§7- §e" + entry.getValue() + "x §7" + entry.getKey().name());
+                        player.sendMessage("[shop] §7- §e" + entry.getValue() + "x §7" + entry.getKey().name());
                     }
-                    player.sendMessage("§aPour un total de §e" + totalMoney + " §apièces.");
+                    player.sendMessage("[shop] §aPour un total de §e" + totalMoney + " §apièces.");
                 } else {
-                    player.sendMessage("§cErreur lors de la vente: " + response.errorMessage);
+                    player.sendMessage("[shop] §cErreur lors de la vente: " + response.errorMessage);
                 }
             } else {
-                player.sendMessage("§cVous n'avez aucun item à vendre dans votre inventaire.");
+                player.sendMessage("[shop] §cVous n'avez aucun item à vendre dans votre inventaire.");
             }
 
             return true;

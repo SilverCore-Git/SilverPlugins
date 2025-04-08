@@ -5,6 +5,7 @@
  * @author Netsu_ - main
  * @author JemY5
  */
+
 package fr.silvercore.sP_Shop;
 
 import net.milkbowl.vault.economy.Economy;
@@ -36,14 +37,14 @@ public class SP_Shop extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        Bukkit.getLogger().log(Level.INFO, "SilverPlugins : SP_Shop a démarré avec succès (le frère de réussite).");
+        Bukkit.getLogger().log(Level.INFO, "[SP_Shop] : SP_Shop a démarré avec succès (le frère de réussite).");
         instance = this;
         this.saveDefaultConfig();
         this.saveDefaultConfig();
 
         // Initialiser Vault
         if (!setupEconomy()) {
-            getLogger().severe("Impossible de trouver Vault! Désactivation du plugin.");
+            getLogger().severe("[SP_Shop] : Impossible de trouver le plugin Vault! Désactivation du plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -75,7 +76,7 @@ public class SP_Shop extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Bukkit.getLogger().log(Level.INFO, "SilverPlugins : SP_Shop a désactivé avec réussite (le frère de succès).");
+        Bukkit.getLogger().log(Level.INFO, "[SP_Shop] : SP_Shop a désactivé avec réussite (le frère de succès).");
 
         // Sauvegarder la configuration des prix si elle a été modifiée
         if (priceManager != null) {
@@ -138,7 +139,7 @@ public class SP_Shop extends JavaPlugin {
             try {
                 pricesFile.createNewFile();
             } catch (IOException e) {
-                getLogger().severe("Impossible de créer le fichier prices.yml!");
+                getLogger().severe("[SP_Shop] : Impossible de créer le fichier prices.yml!");
                 e.printStackTrace();
             }
         }
@@ -159,7 +160,7 @@ public class SP_Shop extends JavaPlugin {
         try {
             pricesConfig.save(pricesFile);
         } catch (IOException e) {
-            getLogger().severe("Impossible de sauvegarder le fichier prices.yml!");
+            getLogger().severe("[SP_Shop] : Impossible de sauvegarder le fichier prices.yml!");
             e.printStackTrace();
         }
     }

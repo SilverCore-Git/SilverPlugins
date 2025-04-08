@@ -77,7 +77,7 @@ public class CommandShop implements CommandExecutor {
                         slot++;
                         if (slot % 9 == 8) slot += 2;
                     } catch (IllegalArgumentException e) {
-                        SP_Shop.getInstance().getLogger().warning("Matériel inconnu dans la configuration: " + materialName);
+                        SP_Shop.getInstance().getLogger().warning("[SP_shop] Matériel inconnu dans la configuration: " + materialName);
                     }
 
                 }

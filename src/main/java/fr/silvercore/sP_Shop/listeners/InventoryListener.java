@@ -4,6 +4,7 @@
  * @author Silverdium
  * @author JemY5
  */
+
 package fr.silvercore.sP_Shop.listeners;
 
 import fr.silvercore.sP_Shop.SP_Shop;
@@ -43,7 +44,7 @@ public class InventoryListener implements Listener {
             int sellPrice = SP_Shop.getInstance().getPricesConfig().getInt("items." + material.name() + ".sell", -1);
 
             if (buyPrice == -1 || sellPrice == -1) {
-                player.sendMessage("§cCet item n'est pas disponible à l'achat ou à la vente.");
+                player.sendMessage("[shop] §cCet item n'est pas disponible à l'achat ou à la vente.");
                 return;
             }
             // Déterminer la quantité d'achat/vente en fonction du clic
@@ -59,17 +60,17 @@ public class InventoryListener implements Listener {
                         // Vérifier l'espace disponible dans l'inventaire
                         if (hasInventorySpace(player, material, quantity)) {
                             player.getInventory().addItem(new ItemStack(material, quantity));
-                            player.sendMessage("§aVous avez acheté §e" + quantity + "x §a" + material.name() + " pour §e" + totalCost + " §apièces.");
+                            player.sendMessage("[shop] §aVous avez acheté §e" + quantity + "x §a" + material.name() + " pour §e" + totalCost + " §apièces.");
                         } else {
                             // Rembourser si pas assez d'espace
                             economy.depositPlayer(player, totalCost);
-                            player.sendMessage("§cVous n'avez pas assez d'espace dans votre inventaire!");
+                            player.sendMessage("[shop] §cVous n'avez pas assez d'espace dans votre inventaire!");
                         }
                     } else {
-                        player.sendMessage("§cErreur lors de l'achat: " + response.errorMessage);
+                        player.sendMessage("[shop] §cErreur lors de l'achat: " + response.errorMessage);
                     }
                 } else {
-                    player.sendMessage("§cVous n'avez pas assez d'argent pour acheter cet item.");
+                    player.sendMessage("[shop] §cVous n'avez pas assez d'argent pour acheter cet item.");
                 }
                 int totalCostB = buyPrice * quantity;
                 if (economy.has(player, totalCostB)) {
@@ -77,7 +78,7 @@ public class InventoryListener implements Listener {
                     if (response.transactionSuccess()) {
                         if (hasInventorySpace(player, material, quantity)) {
                             player.getInventory().addItem(new ItemStack(material, quantity));
-                            player.sendMessage("§aVous avez acheté §e" + quantity + "x §a" + material.name() + " pour §e" + totalCost + " §apièces.");
+                            player.sendMessage("[shop] §aVous avez acheté §e" + quantity + "x §a" + material.name() + " pour §e" + totalCost + " §apièces.");
 
                             // Enregistrer la transaction
                             transactionDatabase.recordTransaction(
@@ -89,7 +90,7 @@ public class InventoryListener implements Listener {
                             );
                         } else {
                             economy.depositPlayer(player, totalCost);
-                            player.sendMessage("§cVous n'avez pas assez d'espace dans votre inventaire!");
+                            player.sendMessage("[shop] §cVous n'avez pas assez d'espace dans votre inventaire!");
                         }
                     }
                 }
@@ -111,14 +112,14 @@ public class InventoryListener implements Listener {
                     // Ajouter l'argent
                     EconomyResponse response = economy.depositPlayer(player, totalProfit);
                     if (response.transactionSuccess()) {
-                        player.sendMessage("§aVous avez vendu §e" + quantity + "x §a" + material.name() + " pour §e" + totalProfit + " §apièces.");
+                        player.sendMessage("[shop] §aVous avez vendu §e" + quantity + "x §a" + material.name() + " pour §e" + totalProfit + " §apièces.");
                     } else {
-                        player.sendMessage("§cErreur lors de la vente: " + response.errorMessage);
+                        player.sendMessage("[shop] §cErreur lors de la vente: " + response.errorMessage);
                         // Rendre les items au joueur
                         player.getInventory().addItem(new ItemStack(material, quantity));
                     }
                 } else {
-                    player.sendMessage("§cVous n'avez pas cet item dans votre inventaire.");
+                    player.sendMessage("[shop] §cVous n'avez pas cet item dans votre inventaire.");
                 }
                 int itemCountB = countItems(player, material);
                 if (quantity > itemCountB) {
@@ -131,7 +132,7 @@ public class InventoryListener implements Listener {
 
                     EconomyResponse response = economy.depositPlayer(player, totalProfit);
                     if (response.transactionSuccess()) {
-                        player.sendMessage("§aVous avez vendu §e" + quantity + "x §a" + material.name() + " pour §e" + totalProfit + " §apièces.");
+                        player.sendMessage("[shop] §aVous avez vendu §e" + quantity + "x §a" + material.name() + " pour §e" + totalProfit + " §apièces.");
 
                         // Enregistrer la transaction
                         transactionDatabase.recordTransaction(

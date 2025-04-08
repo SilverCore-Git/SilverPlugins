@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 
 public class DatabaseManager {
+
     private SP_Shop plugin;
     private Connection connection;
     private String dbType;
@@ -30,7 +31,7 @@ public class DatabaseManager {
 
     private void loadConfig() {
         // Chargement des informations de connexion depuis la configuration
-        this.dbType = plugin.getConfig().getString("database.type", "sqlite");
+        this.dbType = plugin.getConfig().getString("database.type", "mysql");
         this.host = plugin.getConfig().getString("database.host", "localhost");
         this.port = plugin.getConfig().getInt("database.port", 3306);
         this.database = plugin.getConfig().getString("database.name", "shop_db");
@@ -62,7 +63,7 @@ public class DatabaseManager {
                 break;
         }
 
-        plugin.getLogger().log(Level.INFO, "Connexion établie avec la base de données " + dbType);
+        plugin.getLogger().log(Level.INFO, "[SP_Shop] Connexion établie avec la base de données " + dbType);
         return connection;
     }
 
@@ -70,9 +71,9 @@ public class DatabaseManager {
         if (connection != null) {
             try {
                 connection.close();
-                plugin.getLogger().log(Level.INFO, "Connexion à la base de données fermée");
+                plugin.getLogger().log(Level.INFO, "[SP_Shop] Connexion à la base de données fermée");
             } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Erreur lors de la fermeture de la connexion", e);
+                plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors de la fermeture de la connexion", e);
             }
         }
     }
@@ -86,7 +87,7 @@ public class DatabaseManager {
             // Création des tables si nécessaire
             //(code de création de tables)
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Erreur lors de l'initialisation de la base de données", e);
+            plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors de l'initialisation de la base de données", e);
         }
     }
 }

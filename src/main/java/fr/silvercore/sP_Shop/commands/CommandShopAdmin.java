@@ -35,7 +35,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cCette commande ne peut être utilisée que par un joueur.");
+            sender.sendMessage("[shop] §cCette commande ne peut être utilisée que par un joueur.");
             return true;
         }
 
@@ -43,7 +43,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
 
         // Vérifier la permission
         if (!player.hasPermission("sp_shop.admin")) {
-            player.sendMessage("§cVous n'avez pas la permission d'utiliser cette commande.");
+            player.sendMessage("[shop] §cVous n'avez pas la permission d'utiliser cette commande.");
             return true;
         }
 
@@ -65,18 +65,18 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                         int sellPrice = Integer.parseInt(args[3]);
 
                         if (buyPrice < 0 || sellPrice < 0) {
-                            player.sendMessage("§cLes prix doivent être positifs.");
+                            player.sendMessage("[shop] §cLes prix doivent être positifs.");
                             return true;
                         }
 
                         priceManager.addItem(material, buyPrice, sellPrice);
                         priceManager.savePrices();
-                        player.sendMessage("§aItem §e" + material.name() + " §aajouté avec succès ! (Achat: §e" + buyPrice + "§a, Vente: §e" + sellPrice + "§a)");
+                        player.sendMessage("[shop] §aItem §e" + material.name() + " §aajouté avec succès ! (Achat: §e" + buyPrice + "§a, Vente: §e" + sellPrice + "§a)");
                     } catch (IllegalArgumentException e) {
-                        player.sendMessage("§cMatériel invalide ou prix non numérique.");
+                        player.sendMessage("[shop] §cMatériel invalide ou prix non numérique.");
                     }
                 } else {
-                    player.sendMessage("§cUsage: /shopadmin add <material> <buyPrice> <sellPrice>");
+                    player.sendMessage("[shop] §cUsage: /shopadmin add <material> <buyPrice> <sellPrice>");
                 }
                 break;
 
@@ -89,15 +89,15 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                         if (priceManager.hasItem(material)) {
                             priceManager.removeItem(material);
                             priceManager.savePrices();
-                            player.sendMessage("§aItem §e" + material.name() + " §asupprimé avec succès !");
+                            player.sendMessage("[shop] §aItem §e" + material.name() + " §asupprimé avec succès !");
                         } else {
-                            player.sendMessage("§cCet item n'existe pas dans la boutique.");
+                            player.sendMessage("[shop] §cCet item n'existe pas dans la boutique.");
                         }
                     } catch (IllegalArgumentException e) {
-                        player.sendMessage("§cMatériel invalide.");
+                        player.sendMessage("[shop] §cMatériel invalide.");
                     }
                 } else {
-                    player.sendMessage("§cUsage: /shopadmin remove <material>");
+                    player.sendMessage("[shop] §cUsage: /shopadmin remove <material>");
                 }
                 break;
 
@@ -109,22 +109,22 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                         int buyPrice = Integer.parseInt(args[2]);
 
                         if (buyPrice < 0) {
-                            player.sendMessage("§cLe prix doit être positif.");
+                            player.sendMessage("[shop] §cLe prix doit être positif.");
                             return true;
                         }
 
                         if (priceManager.hasItem(material)) {
                             priceManager.setBuyPrice(material, buyPrice);
                             priceManager.savePrices();
-                            player.sendMessage("§aPrix d'achat de §e" + material.name() + " §amodifié à §e" + buyPrice + " §apièces.");
+                            player.sendMessage("[shop] §aPrix d'achat de §e" + material.name() + " §amodifié à §e" + buyPrice + " §apièces.");
                         } else {
-                            player.sendMessage("§cCet item n'existe pas dans la boutique. Utilisez /shopadmin add pour l'ajouter.");
+                            player.sendMessage("[shop] §cCet item n'existe pas dans la boutique. Utilisez /shopadmin add pour l'ajouter.");
                         }
                     } catch (IllegalArgumentException e) {
-                        player.sendMessage("§cMatériel invalide ou prix non numérique.");
+                        player.sendMessage("[shop] §cMatériel invalide ou prix non numérique.");
                     }
                 } else {
-                    player.sendMessage("§cUsage: /shopadmin setbuy <material> <price>");
+                    player.sendMessage("[shop] §cUsage: /shopadmin setbuy <material> <price>");
                 }
                 break;
 
@@ -136,33 +136,33 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                         int sellPrice = Integer.parseInt(args[2]);
 
                         if (sellPrice < 0) {
-                            player.sendMessage("§cLe prix doit être positif.");
+                            player.sendMessage("[shop] §cLe prix doit être positif.");
                             return true;
                         }
 
                         if (priceManager.hasItem(material)) {
                             priceManager.setSellPrice(material, sellPrice);
                             priceManager.savePrices();
-                            player.sendMessage("§aPrix de vente de §e" + material.name() + " §amodifié à §e" + sellPrice + " §apièces.");
+                            player.sendMessage("[shop] §aPrix de vente de §e" + material.name() + " §amodifié à §e" + sellPrice + " §apièces.");
                         } else {
-                            player.sendMessage("§cCet item n'existe pas dans la boutique. Utilisez /shopadmin add pour l'ajouter.");
+                            player.sendMessage("[shop] §cCet item n'existe pas dans la boutique. Utilisez /shopadmin add pour l'ajouter.");
                         }
                     } catch (IllegalArgumentException e) {
-                        player.sendMessage("§cMatériel invalide ou prix non numérique.");
+                        player.sendMessage("[shop] §cMatériel invalide ou prix non numérique.");
                     }
                 } else {
-                    player.sendMessage("§cUsage: /shopadmin setsell <material> <price>");
+                    player.sendMessage("[shop] §cUsage: /shopadmin setsell <material> <price>");
                 }
                 break;
 
             case "reload":
                 priceManager.loadPrices();
-                player.sendMessage("§aLes prix ont été rechargés depuis la configuration.");
+                player.sendMessage("[shop] §aLes prix ont été rechargés depuis la configuration.");
                 break;
 
             case "save":
                 priceManager.savePrices();
-                player.sendMessage("§aLes prix ont été sauvegardés dans la configuration.");
+                player.sendMessage("[shop] §aLes prix ont été sauvegardés dans la configuration.");
                 break;
 
             case "list":
@@ -173,7 +173,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                         page = Integer.parseInt(args[1]);
                         if (page < 1) page = 1;
                     } catch (NumberFormatException e) {
-                        player.sendMessage("§cNuméro de page invalide.");
+                        player.sendMessage("[shop] §cNuméro de page invalide.");
                         return true;
                     }
                 }
@@ -182,7 +182,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                 break;
 
             default:
-                player.sendMessage("§cCommande inconnue. Utilisez /shopadmin pour voir les options.");
+                player.sendMessage("[shop] §cCommande inconnue. Utilisez /shopadmin pour voir les options.");
                 break;
         }
 
@@ -239,7 +239,7 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
             page = totalPages;
         }
 
-        player.sendMessage("§a=== Liste des items (Page " + page + "/" + totalPages + ") ===");
+        player.sendMessage("[shop] §a=== Liste des items (Page " + page + "/" + totalPages + ") ===");
 
         int startIndex = (page - 1) * itemsPerPage;
         int endIndex = Math.min(startIndex + itemsPerPage, items.size());
@@ -249,11 +249,11 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
             int buyPrice = priceManager.getBuyPrice(material);
             int sellPrice = priceManager.getSellPrice(material);
 
-            player.sendMessage("§e" + material.name() + " §7- Achat: §a" + buyPrice + " §7- Vente: §c" + sellPrice);
+            player.sendMessage("[shop] §e" + material.name() + " §7- Achat: §a" + buyPrice + " §7- Vente: §c" + sellPrice);
         }
 
         if (page < totalPages) {
-            player.sendMessage("§7Utilisez §e/shopadmin list " + (page + 1) + " §7pour voir la page suivante.");
+            player.sendMessage("[shop] §7Utilisez §e/shopadmin list " + (page + 1) + " §7pour voir la page suivante.");
         }
     }
 
