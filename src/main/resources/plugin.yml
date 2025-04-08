@@ -4,7 +4,7 @@ main: fr.silvercore.sP_Shop.SP_Shop
 api-version: '1.18'
 prefix: SilverPlugins
 load: STARTUP
-authors: [ Silvercore, JemY5, Silverdium, papaye ]
+authors: [ Silvercore, JemY5, Silverdium, papaye, Netsu_ ]
 website: core.silverdium.fr
 depend:
   - Vault
