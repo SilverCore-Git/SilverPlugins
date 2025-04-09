@@ -123,12 +123,12 @@ public class AdminInventoryListener implements Listener {
 
         // Retour au menu principal
         if (material == Material.BARRIER) {
-            return openAdminMainMenu(player);
+            openAdminMainMenu(player);
         };
 
         // Ignorer les items de décoration
         if (material == Material.GRAY_STAINED_GLASS_PANE) {
-            return true;
+            return;
         };
 
         // Si l'item est déjà dans la boutique, informer le joueur
@@ -153,7 +153,7 @@ public class AdminInventoryListener implements Listener {
 
         // Ignorer les items de décoration
         if (material == Material.GRAY_STAINED_GLASS_PANE) {
-            return true;
+            return;
         }
 
         // Vérifier si l'item est dans la boutique
@@ -178,7 +178,7 @@ public class AdminInventoryListener implements Listener {
 
         // Ignorer les items de décoration
         if (material == Material.GRAY_STAINED_GLASS_PANE) {
-            return true;
+            return;
         }
 
         // Vérifier si l'item est dans la boutique
@@ -523,7 +523,7 @@ public class AdminInventoryListener implements Listener {
 
             if (price < 0) {
                 player.sendMessage("[shop] §cLe prix doit être un nombre positif.");
-                return true;
+                return;
             }
 
             PriceManager priceManager = plugin.getPriceManager();
@@ -542,10 +542,10 @@ public class AdminInventoryListener implements Listener {
             // Nettoyer la session d'édition
             priceEditSessions.remove(playerUUID);
 
-            return true;
+            return;
         } catch (NumberFormatException e) {
             player.sendMessage("[shop] §cVeuillez entrer un nombre valide.");
-            return true;
+            return;
         }
     }
 }
