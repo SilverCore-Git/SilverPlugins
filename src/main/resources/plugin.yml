@@ -4,7 +4,7 @@ main: fr.silvercore.sP_Shop.SP_Shop
 api-version: '1.18'
 prefix: SilverPlugins
 load: STARTUP
-authors: [ Silvercore, JemY5, Silverdium, papaye, Netsu_ ]
+authors: [ Silvercore, JemY5, Silverdium ]
 website: core.silverdium.fr
 depend:
   - Vault
@@ -26,11 +26,3 @@ permissions:
   sp_shop.sell:
     description: Permission d'utiliser la commande /sell
     default: true
-
-database: # a migrer to .env
-      type: mysql     # mysql, postgresql ou sqlite => mariadb donc mysql
-      host: localhost # meme server db + serv mc (ip local => 192.168.1.6 server => dell17??)
-      port: 3306      # port par default
-      name: silverplugin   
-      username: silverplugin
-      password: ""
