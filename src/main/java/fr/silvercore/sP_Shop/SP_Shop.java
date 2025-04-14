@@ -24,6 +24,8 @@ import fr.silvercore.sP_Shop.database.TransactionDatabaseManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
+import fr.silvercore.sP_Shop.commands.AdminEconomyCommands;
+import fr.silvercore.sP_Shop.utils.EconomyManager;
 
 public class SP_Shop extends JavaPlugin {
 
@@ -34,6 +36,7 @@ public class SP_Shop extends JavaPlugin {
     private static Economy economy = null;
     private PriceManager priceManager;
     private TransactionDatabaseManager transactionDatabase;
+    private EconomyManager economyManager;
 
     @Override
     public void onEnable() {
@@ -41,6 +44,14 @@ public class SP_Shop extends JavaPlugin {
         instance = this;
         this.saveDefaultConfig();
         this.saveDefaultConfig();
+
+        // Initialiser le gestionnaire d'économie
+        economyManager = new EconomyManager(this);
+
+        // Enregistrer la commande d'économie admin
+        AdminEconomyCommands adminEconomyCommands = new AdminEconomyCommands(this);
+        getCommand("eco").setExecutor(adminEconomyCommands);
+        getCommand("eco").setTabCompleter(adminEconomyCommands);
 
         // Initialiser Vault
         if (!setupEconomy()) {
@@ -89,6 +100,10 @@ public class SP_Shop extends JavaPlugin {
         if (transactionDatabase != null) {
             transactionDatabase.closeConnection();
         }
+
+        // Sauvegarder les données d'économie
+        if (economyManager != null) {
+            economyManager.saveBalances();
     }
 
     // Permet de retourner l'instance du plugin
@@ -123,6 +138,10 @@ public class SP_Shop extends JavaPlugin {
     public TransactionDatabaseManager getTransactionDatabase() {
         return this.transactionDatabase;
     }
+
+        public EconomyManager getEconomyManager() {
+            return economyManager;
+        }
 
     // Méthode pour créer ou charger le fichier de configuration des prix
     public void createPricesConfig() {
