@@ -61,6 +61,15 @@ public class InventoryListener implements Listener {
                         if (hasInventorySpace(player, material, quantity)) {
                             player.getInventory().addItem(new ItemStack(material, quantity));
                             player.sendMessage("[shop] §aVous avez acheté §e" + quantity + "x §a" + material.name() + " pour §e" + totalCost + " §apièces.");
+
+                            // Enregistrer la transaction
+                            transactionDatabase.recordTransaction(
+                                    material,
+                                    null, // Le serveur est considéré comme le vendeur
+                                    player,
+                                    totalCost,
+                                    quantity
+                            );
                         } else {
                             // Rembourser si pas assez d'espace
                             economy.depositPlayer(player, totalCost);
@@ -71,28 +80,6 @@ public class InventoryListener implements Listener {
                     }
                 } else {
                     player.sendMessage("[shop] §cVous n'avez pas assez d'argent pour acheter cet item.");
-                }
-                int totalCostB = buyPrice * quantity;
-                if (economy.has(player, totalCostB)) {
-                    EconomyResponse response = economy.withdrawPlayer(player, totalCostB);
-                    if (response.transactionSuccess()) {
-                        if (hasInventorySpace(player, material, quantity)) {
-                            player.getInventory().addItem(new ItemStack(material, quantity));
-                            player.sendMessage("[shop] §aVous avez acheté §e" + quantity + "x §a" + material.name() + " pour §e" + totalCost + " §apièces.");
-
-                            // Enregistrer la transaction
-                            transactionDatabase.recordTransaction(
-                                    material,
-                                    player, // Le serveur est considéré comme le vendeur
-                                    player,
-                                    totalCost,
-                                    quantity
-                            );
-                        } else {
-                            economy.depositPlayer(player, totalCost);
-                            player.sendMessage("[shop] §cVous n'avez pas assez d'espace dans votre inventaire!");
-                        }
-                    }
                 }
             } else if (event.isRightClick()) {
                 // Vendre
@@ -113,6 +100,15 @@ public class InventoryListener implements Listener {
                     EconomyResponse response = economy.depositPlayer(player, totalProfit);
                     if (response.transactionSuccess()) {
                         player.sendMessage("[shop] §aVous avez vendu §e" + quantity + "x §a" + material.name() + " pour §e" + totalProfit + " §apièces.");
+
+                        // Enregistrer la transaction
+                        transactionDatabase.recordTransaction(
+                                material,
+                                player,
+                                null, // Le serveur est considéré comme l'acheteur
+                                totalProfit,
+                                quantity
+                        );
                     } else {
                         player.sendMessage("[shop] §cErreur lors de la vente: " + response.errorMessage);
                         // Rendre les items au joueur
@@ -120,29 +116,6 @@ public class InventoryListener implements Listener {
                     }
                 } else {
                     player.sendMessage("[shop] §cVous n'avez pas cet item dans votre inventaire.");
-                }
-                int itemCountB = countItems(player, material);
-                if (quantity > itemCountB) {
-                    quantity = itemCountB;
-                }
-
-                if (quantity > 0) {
-                    int totalProfit = sellPrice * quantity;
-                    removeItems(player, material, quantity);
-
-                    EconomyResponse response = economy.depositPlayer(player, totalProfit);
-                    if (response.transactionSuccess()) {
-                        player.sendMessage("[shop] §aVous avez vendu §e" + quantity + "x §a" + material.name() + " pour §e" + totalProfit + " §apièces.");
-
-                        // Enregistrer la transaction
-                        transactionDatabase.recordTransaction(
-                                material,
-                                player,
-                                player, // Le serveur est considéré comme l'acheteur
-                                totalProfit,
-                                quantity
-                        );
-                    }
                 }
             }
         }

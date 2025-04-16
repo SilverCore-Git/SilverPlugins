@@ -104,6 +104,7 @@ public class SP_Shop extends JavaPlugin {
         // Sauvegarder les données d'économie
         if (economyManager != null) {
             economyManager.saveBalances();
+        }
     }
 
     // Permet de retourner l'instance du plugin
@@ -139,9 +140,9 @@ public class SP_Shop extends JavaPlugin {
         return this.transactionDatabase;
     }
 
-        public EconomyManager getEconomyManager() {
-            return economyManager;
-        }
+    public EconomyManager getEconomyManager() {
+        return economyManager;
+    }
 
     // Méthode pour créer ou charger le fichier de configuration des prix
     public void createPricesConfig() {
