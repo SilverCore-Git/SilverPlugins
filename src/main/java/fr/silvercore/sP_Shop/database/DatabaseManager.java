@@ -11,6 +11,7 @@ import fr.silvercore.sP_Shop.SP_Shop;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 import java.util.logging.Level;
 
 public class DatabaseManager {
@@ -26,7 +27,33 @@ public class DatabaseManager {
 
     public DatabaseManager(SP_Shop plugin) {
         this.plugin = plugin;
-        this.loadConfig();
+
+        // Essayer de charger depuis les propriétés .env déjà chargées dans SP_Shop
+        Properties envProperties = plugin.getEnvProperties();
+
+        if (envProperties != null && !envProperties.isEmpty()) {
+            // Charger les paramètres depuis le fichier .env
+            this.loadFromEnvProperties(envProperties);
+        } else {
+            // Si les propriétés ne sont pas disponibles, charger depuis la config
+            this.loadConfig();
+        }
+
+        plugin.getLogger().log(Level.INFO, "[SP_Shop] Configuration base de données chargée: " +
+                dbType + " sur " + host + ":" + port);
+    }
+
+    /**
+     * Charge les informations de connexion depuis les propriétés .env
+     * @param envProperties Les propriétés chargées du fichier .env
+     */
+    private void loadFromEnvProperties(Properties envProperties) {
+        this.dbType = envProperties.getProperty("DB_TYPE", "mysql");
+        this.host = envProperties.getProperty("DB_HOST", "localhost");
+        this.port = Integer.parseInt(envProperties.getProperty("DB_PORT", "3306"));
+        this.database = envProperties.getProperty("DB_DBNAME", "shop_db");
+        this.username = envProperties.getProperty("DB_USER", "root");
+        this.password = envProperties.getProperty("DB_PASSWD", "");
     }
 
     private void loadConfig() {
@@ -77,6 +104,7 @@ public class DatabaseManager {
             }
         }
     }
+
     public String getDbType() {
         return this.dbType;
     }

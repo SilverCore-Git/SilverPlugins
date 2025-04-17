@@ -21,8 +21,10 @@ import fr.silvercore.sP_Shop.listeners.InventoryListener;
 import fr.silvercore.sP_Shop.listeners.AdminInventoryListener;
 import fr.silvercore.sP_Shop.utils.PriceManager;
 import fr.silvercore.sP_Shop.database.TransactionDatabaseManager;
+import fr.silvercore.sP_Shop.utils.EnvFileCreator;
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 import java.util.logging.Level;
 import fr.silvercore.sP_Shop.commands.AdminEconomyCommands;
 import fr.silvercore.sP_Shop.utils.EconomyManager;
@@ -37,13 +39,20 @@ public class SP_Shop extends JavaPlugin {
     private PriceManager priceManager;
     private TransactionDatabaseManager transactionDatabase;
     private EconomyManager economyManager;
+    // Propriétés du fichier .env
+    private Properties envProperties;
 
     @Override
     public void onEnable() {
         Bukkit.getLogger().log(Level.INFO, "[SP_Shop] : SP_Shop a démarré avec succès (le frère de réussite).");
         instance = this;
         this.saveDefaultConfig();
-        this.saveDefaultConfig();
+
+        // Créer ou charger le fichier .env
+        EnvFileCreator envCreator = new EnvFileCreator(this);
+        this.envProperties = envCreator.createOrLoadEnvFile();
+        getLogger().log(Level.INFO, "[SP_Shop] : Propriétés .env chargées: " +
+                (envProperties != null && !envProperties.isEmpty() ? "OK" : "Non disponibles"));
 
         // Initialiser le gestionnaire d'économie
         economyManager = new EconomyManager(this);
@@ -142,6 +151,28 @@ public class SP_Shop extends JavaPlugin {
 
     public EconomyManager getEconomyManager() {
         return economyManager;
+    }
+
+    /**
+     * Récupère les propriétés du fichier .env
+     * @return Les propriétés chargées du fichier .env
+     */
+    public Properties getEnvProperties() {
+        return this.envProperties;
+    }
+
+    /**
+     * Met à jour les propriétés du fichier .env
+     * @param newProperties Les nouvelles propriétés à enregistrer
+     * @return true si la mise à jour a réussi, false sinon
+     */
+    public boolean updateEnvProperties(Properties newProperties) {
+        EnvFileCreator envCreator = new EnvFileCreator(this);
+        boolean success = envCreator.updateEnvFile(newProperties);
+        if (success) {
+            this.envProperties = newProperties;
+        }
+        return success;
     }
 
     // Méthode pour créer ou charger le fichier de configuration des prix
