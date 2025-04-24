@@ -9,174 +9,250 @@ package fr.silvercore.sP_Shop.utils;
 
 import fr.silvercore.sP_Shop.SP_Shop;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
-
-// Gestionnaire de prix avec système de cache pour améliorer les performances
 public class PriceManager {
-    private SP_Shop plugin;
-    private Map<Material, ItemPrice> priceCache = new HashMap<>();
-    private boolean isDirty = false; // Indique si le cache a été modifié et doit être sauvegardé
 
-     //Classe interne pour stocker les prix d'achat et de vente
-    public static class ItemPrice {
-        private int buyPrice;
-        private int sellPrice;
-
-        public ItemPrice(int buyPrice, int sellPrice) {
-            this.buyPrice = buyPrice;
-            this.sellPrice = sellPrice;
-        }
-
-        public int getBuyPrice() {
-            return buyPrice;
-        }
-
-        public int getSellPrice() {
-            return sellPrice;
-        }
-
-        public void setBuyPrice(int buyPrice) {
-            this.buyPrice = buyPrice;
-        }
-
-        public void setSellPrice(int sellPrice) {
-            this.sellPrice = sellPrice;
-        }
-    }
+    private final SP_Shop plugin;
+    private final Map<Material, Price> pricesCache;
+    private boolean isDirty = false;
 
     public PriceManager(SP_Shop plugin) {
         this.plugin = plugin;
-        loadPrices();
+        this.pricesCache = new ConcurrentHashMap<>();
+        this.loadPrices();
     }
 
-    //Charge tous les prix depuis la configuration dans le cache
 
-    public void loadPrices() {
-        priceCache.clear();
-        ConfigurationSection itemsSection = plugin.getPricesConfig().getConfigurationSection("items");
+    //Charge les prix depuis la configuration et la base de données
+    private void loadPrices() {
+        plugin.getLogger().log(Level.INFO, "[SP_Shop] Chargement des prix des items...");
 
-        if (itemsSection != null) {
-            for (String materialName : itemsSection.getKeys(false)) {
+        // D'abord, charger depuis le fichier
+        loadPricesFromConfig();
+
+        // Ensuite, synchroniser avec la base de données (les prix de la BD ont priorité)
+        loadPricesFromDatabase();
+    }
+
+    //Charge les prix depuis le fichier de configuration
+
+    private void loadPricesFromConfig() {
+        FileConfiguration config = plugin.getPricesConfig();
+        if (config.contains("items")) {
+            for (String itemKey : config.getConfigurationSection("items").getKeys(false)) {
                 try {
-                    Material material = Material.valueOf(materialName);
-                    int buyPrice = itemsSection.getInt(materialName + ".buy", 0);
-                    int sellPrice = itemsSection.getInt(materialName + ".sell", 0);
+                    Material material = Material.valueOf(itemKey);
+                    double buyPrice = config.getDouble("items." + itemKey + ".buy", 0);
+                    double sellPrice = config.getDouble("items." + itemKey + ".sell", 0);
 
-                    priceCache.put(material, new ItemPrice(buyPrice, sellPrice));
+                    pricesCache.put(material, new Price(buyPrice, sellPrice));
                 } catch (IllegalArgumentException e) {
-                    plugin.getLogger().warning("[SP_Shop] : Matériel inconnu dans la configuration: " + materialName);
+                    plugin.getLogger().log(Level.WARNING, "[SP_Shop] Item invalide dans la configuration: " + itemKey);
                 }
             }
         }
+    }
+     //Charge les prix depuis la base de données
 
-        isDirty = false;
+    private void loadPricesFromDatabase() {
+        String query = "SELECT item_name, buy_price, sell_price FROM item_prices";
+
+        try (Connection conn = plugin.getTransactionDatabase().getDbManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                try {
+                    String itemName = rs.getString("item_name");
+                    double buyPrice = rs.getDouble("buy_price");
+                    double sellPrice = rs.getDouble("sell_price");
+
+                    Material material = Material.valueOf(itemName);
+                    pricesCache.put(material, new Price(buyPrice, sellPrice));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().log(Level.WARNING, "[SP_Shop] Item invalide dans la base de données: " + rs.getString("item_name"));
+                }
+            }
+
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors du chargement des prix depuis la base de données", e);
+        }
     }
 
-    /**
-     * Sauvegarde les prix du cache dans le fichier de configuration
+    /*
+     * Sauvegarde les prix dans la configuration et la base de données
      */
     public void savePrices() {
         if (!isDirty) {
-            return; // Ne sauvegarde que si des modifications ont été faites
+            return; // Rien à sauvegarder
         }
 
-        // Réinitialiser la section des items
-        plugin.getPricesConfig().set("items", null);
+        plugin.getLogger().log(Level.INFO, "[SP_Shop] Sauvegarde des prix des items...");
 
-        // Sauvegarder chaque prix du cache
-        for (Map.Entry<Material, ItemPrice> entry : priceCache.entrySet()) {
+        // Sauvegarder dans le fichier de configuration
+        FileConfiguration config = plugin.getPricesConfig();
+        for (Map.Entry<Material, Price> entry : pricesCache.entrySet()) {
             Material material = entry.getKey();
-            ItemPrice price = entry.getValue();
+            Price price = entry.getValue();
 
-            plugin.getPricesConfig().set("items." + material.name() + ".buy", price.getBuyPrice());
-            plugin.getPricesConfig().set("items." + material.name() + ".sell", price.getSellPrice());
+            config.set("items." + material.name() + ".buy", price.getBuyPrice());
+            config.set("items." + material.name() + ".sell", price.getSellPrice());
         }
-
-        // Sauvegarder le fichier
         plugin.savePricesConfig();
+
+        // Synchroniser avec la base de données
+        synchronizeWithDatabase();
+
         isDirty = false;
     }
 
-    /**
-     * Obtenir le prix d'achat d'un item
+    /*
+     * Synchronise les prix avec la base de données
      */
-    public int getBuyPrice(Material material) {
-        ItemPrice price = priceCache.get(material);
-        return price != null ? price.getBuyPrice() : -1;
+    private void synchronizeWithDatabase() {
+        String query = "INSERT INTO item_prices (item_name, buy_price, sell_price) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE buy_price = VALUES(buy_price), sell_price = VALUES(sell_price)";
+
+        try (Connection conn = plugin.getTransactionDatabase().getdbManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            for (Map.Entry<Material, Price> entry : pricesCache.entrySet()) {
+                Material material = entry.getKey();
+                Price price = entry.getValue();
+
+                stmt.setString(1, material.name());
+                stmt.setDouble(2, price.getBuyPrice());
+                stmt.setDouble(3, price.getSellPrice());
+                stmt.addBatch();
+            }
+
+            stmt.executeBatch();
+
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors de la synchronisation des prix avec la base de données", e);
+        }
+    }
+
+    /*
+     * Définit le prix d'achat d'un item
+     * @param material Le matériau (item)
+     * @param price Le prix d'achat
+     */
+    public void setBuyPrice(Material material, double price) {
+        Price itemPrice = pricesCache.getOrDefault(material, new Price(0, 0));
+        itemPrice.setBuyPrice(price);
+        pricesCache.put(material, itemPrice);
+        isDirty = true;
+    }
+
+    /*
+     * Définit le prix de vente d'un item
+     * @param material Le matériau (item)
+     * @param price Le prix de vente
+     */
+    public void setSellPrice(Material material, double price) {
+        Price itemPrice = pricesCache.getOrDefault(material, new Price(0, 0));
+        itemPrice.setSellPrice(price);
+        pricesCache.put(material, itemPrice);
+        isDirty = true;
+    }
+
+    /*
+     * Obtient le prix d'achat d'un item
+     * @param material Le matériau (item)
+     * @return Le prix d'achat
+     */
+    public double getBuyPrice(Material material) {
+        Price price = pricesCache.get(material);
+        return price != null ? price.getBuyPrice() : 0;
+    }
+
+    /*
+     * Obtient le prix de vente d'un item
+     * @param material Le matériau (item)
+     * @return Le prix de vente
+     */
+    public double getSellPrice(Material material) {
+        Price price = pricesCache.get(material);
+        return price != null ? price.getSellPrice() : 0;
+    }
+
+    /*
+     * Vérifie si un item a un prix défini
+     * @param material Le matériau (item)
+     * @return true si l'item a un prix, false sinon
+     */
+    public boolean hasPrice(Material material) {
+        return pricesCache.containsKey(material);
+    }
+
+    /*
+     * Supprime le prix d'un item
+     * @param material Le matériau (item)
+     */
+    public void removePrice(Material material) {
+        if (pricesCache.remove(material) != null) {
+            isDirty = true;
+
+            // Supprimer également de la base de données
+            String query = "DELETE FROM item_prices WHERE item_name = ?";
+
+            try (Connection conn = plugin.getTransactionDatabase().getDbManager().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(query)) {
+
+                stmt.setString(1, material.name());
+                stmt.executeUpdate();
+
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors de la suppression du prix de la base de données", e);
+            }
+        }
+    }
+
+    /*
+     * Obtient tous les items avec leurs prix
+     * @return Map contenant tous les items et leurs prix
+     */
+    public Map<Material, Price> getAllPrices() {
+        return new HashMap<>(pricesCache);
     }
 
     /**
-     * Obtenir le prix de vente d'un item
+     * Classe représentant le prix d'un item
      */
-    public int getSellPrice(Material material) {
-        ItemPrice price = priceCache.get(material);
-        return price != null ? price.getSellPrice() : -1;
-    }
+    public static class Price {
+        private double buyPrice;
+        private double sellPrice;
 
-    /**
-     * Définir le prix d'achat d'un item
-     */
-    public void setBuyPrice(Material material, int price) {
-        ItemPrice itemPrice = priceCache.get(material);
-
-        if (itemPrice == null) {
-            itemPrice = new ItemPrice(price, 0);
-            priceCache.put(material, itemPrice);
-        } else {
-            itemPrice.setBuyPrice(price);
+        public Price(double buyPrice, double sellPrice) {
+            this.buyPrice = buyPrice;
+            this.sellPrice = sellPrice;
         }
 
-        isDirty = true;
-    }
-
-    /**
-     * Définir le prix de vente d'un item
-     */
-    public void setSellPrice(Material material, int price) {
-        ItemPrice itemPrice = priceCache.get(material);
-
-        if (itemPrice == null) {
-            itemPrice = new ItemPrice(0, price);
-            priceCache.put(material, itemPrice);
-        } else {
-            itemPrice.setSellPrice(price);
+        public double getBuyPrice() {
+            return buyPrice;
         }
 
-        isDirty = true;
-    }
+        public void setBuyPrice(double buyPrice) {
+            this.buyPrice = buyPrice;
+        }
 
-    /**
-     * Ajouter un nouvel item avec ses prix
-     */
-    public void addItem(Material material, int buyPrice, int sellPrice) {
-        priceCache.put(material, new ItemPrice(buyPrice, sellPrice));
-        isDirty = true;
-    }
+        public double getSellPrice() {
+            return sellPrice;
+        }
 
-    /**
-     * Supprimer un item du shop
-     */
-    public void removeItem(Material material) {
-        priceCache.remove(material);
-        isDirty = true;
-    }
-
-    /**
-     * Vérifier si un item est dans le shop
-     */
-    public boolean hasItem(Material material) {
-        return priceCache.containsKey(material);
-    }
-
-    /**
-     * Obtenir tous les matériaux disponibles dans le shop
-     */
-    public Set<Material> getAvailableItems() {
-        return priceCache.keySet();
+        public void setSellPrice(double sellPrice) {
+            this.sellPrice = sellPrice;
+        }
     }
 }

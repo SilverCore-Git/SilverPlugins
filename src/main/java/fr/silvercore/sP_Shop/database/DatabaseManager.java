@@ -24,6 +24,7 @@ public class DatabaseManager {
     private String database;
     private String username;
     private String password;
+    private DatabaseSetup databaseSetup;
 
     public DatabaseManager(SP_Shop plugin) {
         this.plugin = plugin;
@@ -41,6 +42,10 @@ public class DatabaseManager {
 
         plugin.getLogger().log(Level.INFO, "[SP_Shop] Configuration base de données chargée: " +
                 dbType + " sur " + host + ":" + port);
+
+        // Initialiser le setup de la base de données
+        this.databaseSetup = new DatabaseSetup(plugin, this);
+        this.initialize();
     }
 
     /**
@@ -75,7 +80,7 @@ public class DatabaseManager {
             case "mysql":
                 connection = DriverManager.getConnection(
                         "jdbc:mysql://" + host + ":" + port + "/" + database +
-                                "?useSSL=false&autoReconnect=true",
+                                "?useSSL=false&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8",
                         username, password);
                 break;
             case "postgresql":
@@ -111,9 +116,16 @@ public class DatabaseManager {
 
     public void initialize() {
         try {
-            Connection conn = getConnection();
-            // Création des tables si nécessaire
-            //(code de création de tables)
+            // Vérifier que la connexion fonctionne
+            getConnection();
+
+            // Initialiser la structure de la base de données
+            databaseSetup.initializeDatabase();
+
+            // Insérer des données de test si configuré pour le faire
+            if (plugin.getConfig().getBoolean("database.insert_test_data", false)) {
+                databaseSetup.insertTestData();
+            }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors de l'initialisation de la base de données", e);
         }
