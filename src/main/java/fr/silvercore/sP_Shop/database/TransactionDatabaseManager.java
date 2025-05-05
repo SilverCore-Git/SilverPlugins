@@ -27,7 +27,7 @@ public class TransactionDatabaseManager {
         // La création des tables est maintenant gérée par DatabaseSetup
     }
 
-    /**
+    /*
      * Enregistre une transaction dans la base de données
      * @param item L'item vendu
      * @param seller Le vendeur
@@ -545,5 +545,31 @@ public class TransactionDatabaseManager {
     // Ferme la connexion à la base de données
     public void closeConnection() {
         dbManager.closeConnection();
+    }
+    /*
+     * Exécute une requête SELECT et retourne le ResultSet
+     * @param query La requête SQL à exécuter
+     * @return Le ResultSet résultant
+     * @throws SQLException En cas d'erreur SQL
+     */
+    public ResultSet executeQuery(String query) throws SQLException {
+        Connection conn = dbManager.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(query);
+        return stmt.executeQuery();
+    }
+
+    /*
+     * Exécute une requête UPDATE, INSERT ou DELETE
+     * @param query La requête SQL à exécuter
+     * @return Le nombre de lignes affectées
+     * @throws SQLException En cas d'erreur SQL
+     */
+    public int executeUpdate(String query) throws SQLException {
+        Connection conn = dbManager.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(query);
+        int result = stmt.executeUpdate();
+        stmt.close();
+        conn.close();
+        return result;
     }
 }

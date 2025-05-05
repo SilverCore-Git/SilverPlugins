@@ -62,14 +62,14 @@ public class PriceManager {
             }
         }
     }
-     //Charge les prix depuis la base de données
+    //Charge les prix depuis la base de données
 
     private void loadPricesFromDatabase() {
         String query = "SELECT item_name, buy_price, sell_price FROM item_prices";
 
-        try (Connection conn = plugin.getTransactionDatabase().getDbManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+        try {
+            // Utilisons directement la classe qui gère les requêtes SQL
+            ResultSet rs = plugin.getTransactionDatabase().executeQuery(query);
 
             while (rs.next()) {
                 try {
@@ -83,6 +83,7 @@ public class PriceManager {
                     plugin.getLogger().log(Level.WARNING, "[SP_Shop] Item invalide dans la base de données: " + rs.getString("item_name"));
                 }
             }
+            rs.close();
 
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors du chargement des prix depuis la base de données", e);
@@ -120,26 +121,20 @@ public class PriceManager {
      * Synchronise les prix avec la base de données
      */
     private void synchronizeWithDatabase() {
-        String query = "INSERT INTO item_prices (item_name, buy_price, sell_price) VALUES (?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE buy_price = VALUES(buy_price), sell_price = VALUES(sell_price)";
+        // On doit passer par le TransactionDatabaseManager pour exécuter notre batch
+        for (Map.Entry<Material, Price> entry : pricesCache.entrySet()) {
+            Material material = entry.getKey();
+            Price price = entry.getValue();
 
-        try (Connection conn = plugin.getTransactionDatabase().getdbManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+            String query = "INSERT INTO item_prices (item_name, buy_price, sell_price) VALUES ('" +
+                    material.name() + "', " + price.getBuyPrice() + ", " + price.getSellPrice() + ") " +
+                    "ON DUPLICATE KEY UPDATE buy_price = VALUES(buy_price), sell_price = VALUES(sell_price)";
 
-            for (Map.Entry<Material, Price> entry : pricesCache.entrySet()) {
-                Material material = entry.getKey();
-                Price price = entry.getValue();
-
-                stmt.setString(1, material.name());
-                stmt.setDouble(2, price.getBuyPrice());
-                stmt.setDouble(3, price.getSellPrice());
-                stmt.addBatch();
+            try {
+                plugin.getTransactionDatabase().executeUpdate(query);
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors de la synchronisation du prix pour " + material.name(), e);
             }
-
-            stmt.executeBatch();
-
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors de la synchronisation des prix avec la base de données", e);
         }
     }
 
@@ -205,14 +200,10 @@ public class PriceManager {
             isDirty = true;
 
             // Supprimer également de la base de données
-            String query = "DELETE FROM item_prices WHERE item_name = ?";
+            String query = "DELETE FROM item_prices WHERE item_name = '" + material.name() + "'";
 
-            try (Connection conn = plugin.getTransactionDatabase().getDbManager().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(query)) {
-
-                stmt.setString(1, material.name());
-                stmt.executeUpdate();
-
+            try {
+                plugin.getTransactionDatabase().executeUpdate(query);
             } catch (SQLException e) {
                 plugin.getLogger().log(Level.SEVERE, "[SP_Shop] Erreur lors de la suppression du prix de la base de données", e);
             }
