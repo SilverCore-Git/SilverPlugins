@@ -21,10 +21,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -145,7 +145,7 @@ public class AdminInventoryListener implements Listener {
         }
 
         // Si l'item est déjà dans la boutique, informer le joueur
-        if (priceManager.hasItem(material)) {
+        if (priceManager.hasPrice(material)) {
             player.sendMessage("§cCet item est déjà dans la boutique. Utilisez le menu de modification des prix.");
             return; // Ajout du return manquant
         }
@@ -172,7 +172,7 @@ public class AdminInventoryListener implements Listener {
         }
 
         // Vérifier si l'item est dans la boutique
-        if (!priceManager.hasItem(material)) {
+        if (!priceManager.hasPrice(material)) {
             player.sendMessage("§cCet item n'est pas disponible dans la boutique.");
             return; // Ajout du return manquant
         }
@@ -199,13 +199,13 @@ public class AdminInventoryListener implements Listener {
         }
 
         // Vérifier si l'item est dans la boutique
-        if (!priceManager.hasItem(material)) {
+        if (!priceManager.hasPrice(material)) {
             player.sendMessage("[shop] §cCet item n'est pas disponible dans la boutique.");
             return; // Ajout du return manquant
         }
 
         // Supprimer l'item
-        priceManager.removeItem(material);
+        priceManager.removePrice(material);
         priceManager.savePrices();
         player.sendMessage("[shop] §aL'item §e" + material.name() + " §aa été supprimé de la boutique.");
 
@@ -235,7 +235,7 @@ public class AdminInventoryListener implements Listener {
             return; // Ajout du return pour éviter l'exécution du code suivant
         }
 
-        boolean isNewItem = !priceManager.hasItem(material);
+        boolean isNewItem = !priceManager.hasPrice(material);
 
         // Édition du prix d'achat
         if (itemName.equals("§aModifier le prix d'achat")) {
@@ -251,8 +251,8 @@ public class AdminInventoryListener implements Listener {
         }
         // Confirmer l'ajout
         else if (itemName.equals("§aConfirmer l'ajout")) {
-            int buyPrice = priceManager.getBuyPrice(material);
-            int sellPrice = priceManager.getSellPrice(material);
+            double buyPrice = priceManager.getBuyPrice(material);
+            double sellPrice = priceManager.getSellPrice(material);
 
             // Vérifier si les prix sont configurés
             if (buyPrice <= 0 || sellPrice <= 0) {
@@ -260,7 +260,9 @@ public class AdminInventoryListener implements Listener {
                 return;
             }
 
-            priceManager.addItem(material, buyPrice, sellPrice);
+            // Ajoutons l'item en sauvegardant les prix actuels
+            priceManager.setBuyPrice(material, buyPrice);
+            priceManager.setSellPrice(material, sellPrice);
             priceManager.savePrices();
             player.sendMessage("[shop] §aL'item §e" + material.name() + " §aa été ajouté à la boutique.");
             openAdminMainMenu(player);
@@ -364,7 +366,7 @@ public class AdminInventoryListener implements Listener {
         adminSessions.put(player.getUniqueId(), AdminSessionType.EDIT_PRICES);
 
         PriceManager priceManager = plugin.getPriceManager();
-        List<Material> items = new ArrayList<>(priceManager.getAvailableItems());
+        Set<Material> items = priceManager.getAllPrices().keySet();
 
         // Ajouter les items disponibles
         int slot = 0;
@@ -412,7 +414,7 @@ public class AdminInventoryListener implements Listener {
         adminSessions.put(player.getUniqueId(), AdminSessionType.REMOVE_ITEM);
 
         PriceManager priceManager = plugin.getPriceManager();
-        List<Material> items = new ArrayList<>(priceManager.getAvailableItems());
+        Set<Material> items = priceManager.getAllPrices().keySet();
 
         // Ajouter les items disponibles
         int slot = 0;
@@ -544,7 +546,7 @@ public class AdminInventoryListener implements Listener {
         PriceEditType editType = priceEditSessions.get(playerUUID);
 
         try {
-            int price = Integer.parseInt(message);
+            double price = Double.parseDouble(message);
 
             if (price < 0) {
                 player.sendMessage("[shop] §cLe prix doit être un nombre positif.");
@@ -562,7 +564,7 @@ public class AdminInventoryListener implements Listener {
             }
 
             // Ouvrir à nouveau l'interface d'édition des prix
-            openPriceEditorMenu(player, material, !priceManager.hasItem(material));
+            openPriceEditorMenu(player, material, !priceManager.hasPrice(material));
 
             // Nettoyer la session d'édition
             priceEditSessions.remove(playerUUID);

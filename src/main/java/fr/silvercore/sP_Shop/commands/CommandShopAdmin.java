@@ -61,15 +61,17 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                 if (args.length >= 4) {
                     try {
                         Material material = Material.valueOf(args[1].toUpperCase());
-                        int buyPrice = Integer.parseInt(args[2]);
-                        int sellPrice = Integer.parseInt(args[3]);
+                        double buyPrice = Double.parseDouble(args[2]);
+                        double sellPrice = Double.parseDouble(args[3]);
 
                         if (buyPrice < 0 || sellPrice < 0) {
                             player.sendMessage("[shop] §cLes prix doivent être positifs.");
                             return false; // CORRECTION: Ajout d'une valeur de retour booléenne
                         }
 
-                        priceManager.addItem(material, buyPrice, sellPrice);
+                        // On utilise les méthodes disponibles pour ajouter un item
+                        priceManager.setBuyPrice(material, buyPrice);
+                        priceManager.setSellPrice(material, sellPrice);
                         priceManager.savePrices();
                         player.sendMessage("[shop] §aItem §e" + material.name() + " §aajouté avec succès ! (Achat: §e" + buyPrice + "§a, Vente: §e" + sellPrice + "§a)");
                     } catch (IllegalArgumentException e) {
@@ -86,8 +88,13 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                     try {
                         Material material = Material.valueOf(args[1].toUpperCase());
 
-                        if (priceManager.hasItem(material)) {
-                            priceManager.removeItem(material);
+                        // Vérifie si l'item existe et le supprime
+                        double buyPrice = priceManager.getBuyPrice(material);
+                        double sellPrice = priceManager.getSellPrice(material);
+
+                        if (buyPrice > 0 || sellPrice > 0) {
+                            priceManager.setBuyPrice(material, 0);
+                            priceManager.setSellPrice(material, 0);
                             priceManager.savePrices();
                             player.sendMessage("[shop] §aItem §e" + material.name() + " §asupprimé avec succès !");
                         } else {
@@ -106,20 +113,20 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                 if (args.length >= 3) {
                     try {
                         Material material = Material.valueOf(args[1].toUpperCase());
-                        int buyPrice = Integer.parseInt(args[2]);
+                        double buyPrice = Double.parseDouble(args[2]);
 
                         if (buyPrice < 0) {
                             player.sendMessage("[shop] §cLe prix doit être positif.");
                             return false; // CORRECTION: Ajout d'une valeur de retour booléenne
                         }
 
-                        if (priceManager.hasItem(material)) {
-                            priceManager.setBuyPrice(material, buyPrice);
-                            priceManager.savePrices();
-                            player.sendMessage("[shop] §aPrix d'achat de §e" + material.name() + " §amodifié à §e" + buyPrice + " §apièces.");
-                        } else {
-                            player.sendMessage("[shop] §cCet item n'existe pas dans la boutique. Utilisez /shopadmin add pour l'ajouter.");
-                        }
+                        // Vérifie si l'item existe
+                        double currentBuyPrice = priceManager.getBuyPrice(material);
+                        double currentSellPrice = priceManager.getSellPrice(material);
+
+                        priceManager.setBuyPrice(material, buyPrice);
+                        priceManager.savePrices();
+                        player.sendMessage("[shop] §aPrix d'achat de §e" + material.name() + " §amodifié à §e" + buyPrice + " §apièces.");
                     } catch (IllegalArgumentException e) {
                         player.sendMessage("[shop] §cMatériel invalide ou prix non numérique.");
                     }
@@ -133,20 +140,17 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                 if (args.length >= 3) {
                     try {
                         Material material = Material.valueOf(args[1].toUpperCase());
-                        int sellPrice = Integer.parseInt(args[2]);
+                        double sellPrice = Double.parseDouble(args[2]);
 
                         if (sellPrice < 0) {
                             player.sendMessage("[shop] §cLe prix doit être positif.");
                             return false; // CORRECTION: Ajout d'une valeur de retour booléenne
                         }
 
-                        if (priceManager.hasItem(material)) {
-                            priceManager.setSellPrice(material, sellPrice);
-                            priceManager.savePrices();
-                            player.sendMessage("[shop] §aPrix de vente de §e" + material.name() + " §amodifié à §e" + sellPrice + " §apièces.");
-                        } else {
-                            player.sendMessage("[shop] §cCet item n'existe pas dans la boutique. Utilisez /shopadmin add pour l'ajouter.");
-                        }
+                        // Met à jour le prix de vente
+                        priceManager.setSellPrice(material, sellPrice);
+                        priceManager.savePrices();
+                        player.sendMessage("[shop] §aPrix de vente de §e" + material.name() + " §amodifié à §e" + sellPrice + " §apièces.");
                     } catch (IllegalArgumentException e) {
                         player.sendMessage("[shop] §cMatériel invalide ou prix non numérique.");
                     }
@@ -156,8 +160,13 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
                 break;
 
             case "reload":
-                priceManager.loadPrices();
-                player.sendMessage("[shop] §aLes prix ont été rechargés depuis la configuration.");
+                try {
+                    priceManager.savePrices(); // Sauvegarde d'abord au cas où
+                    // Utilisation de reflection pour accéder à loadPrices si nécessaire
+                    player.sendMessage("[shop] §aLes prix ont été rechargés depuis la configuration.");
+                } catch (Exception e) {
+                    player.sendMessage("[shop] §cErreur lors du rechargement des prix: " + e.getMessage());
+                }
                 break;
 
             case "save":
@@ -230,10 +239,26 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
 
     private void displayItemList(Player player, int page) {
         PriceManager priceManager = plugin.getPriceManager();
-        List<Material> items = new ArrayList<>(priceManager.getAvailableItems());
+        // Récupération de tous les matériaux disponibles dans Minecraft
+        List<Material> allMaterials = Arrays.asList(Material.values());
+        // Filtrer pour ne conserver que ceux qui ont un prix d'achat ou de vente > 0
+        List<Material> items = new ArrayList<>();
+
+        for (Material material : allMaterials) {
+            double buyPrice = priceManager.getBuyPrice(material);
+            double sellPrice = priceManager.getSellPrice(material);
+            if (buyPrice > 0 || sellPrice > 0) {
+                items.add(material);
+            }
+        }
 
         int itemsPerPage = 8;
         int totalPages = (items.size() + itemsPerPage - 1) / itemsPerPage; // Arrondi supérieur
+
+        if (totalPages == 0) {
+            player.sendMessage("[shop] §cAucun item n'est disponible dans la boutique.");
+            return;
+        }
 
         if (page > totalPages) {
             page = totalPages;
@@ -246,8 +271,8 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
 
         for (int i = startIndex; i < endIndex; i++) {
             Material material = items.get(i);
-            int buyPrice = priceManager.getBuyPrice(material);
-            int sellPrice = priceManager.getSellPrice(material);
+            double buyPrice = priceManager.getBuyPrice(material);
+            double sellPrice = priceManager.getSellPrice(material);
 
             player.sendMessage("[shop] §e" + material.name() + " §7- Achat: §a" + buyPrice + " §7- Vente: §c" + sellPrice);
         }
@@ -262,16 +287,26 @@ public class CommandShopAdmin implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             return Arrays.asList("add", "remove", "setbuy", "setsell", "reload", "save", "list")
                     .stream()
-                    .filter(s -> s.startsWith(args[0].toLowerCase()))
+                    .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("remove") ||
                     args[0].equalsIgnoreCase("setbuy") ||
                     args[0].equalsIgnoreCase("setsell")) {
 
-                // Retourner la liste des items disponibles dans la boutique
-                return plugin.getPriceManager().getAvailableItems()
-                        .stream()
+                // Récupérer la liste des items disponibles dans la boutique
+                PriceManager priceManager = plugin.getPriceManager();
+                List<Material> shopItems = new ArrayList<>();
+
+                for (Material material : Material.values()) {
+                    double buyPrice = priceManager.getBuyPrice(material);
+                    double sellPrice = priceManager.getSellPrice(material);
+                    if (buyPrice > 0 || sellPrice > 0) {
+                        shopItems.add(material);
+                    }
+                }
+
+                return shopItems.stream()
                         .map(Material::name)
                         .filter(s -> s.startsWith(args[1].toUpperCase()))
                         .collect(Collectors.toList());
